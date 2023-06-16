@@ -1,6 +1,11 @@
 ##########################
 # Vector store
 storage
+db
+
+##########################
+# Local LLM models
+models
 
 ##########################
 # KEDRO PROJECT
