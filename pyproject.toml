@@ -4,6 +4,9 @@ version = "0.1.0"
 description = ""
 authors = ["Nick Schenone <nicks@iguazio.com>", "Yaron Haviv <yaronh@iguazio.com>"]
 readme = "README.md"
+packages = [
+    { include = "llmbot", from = "src"},
+]
 
 [tool.poetry.dependencies]
 python = "^3.9"

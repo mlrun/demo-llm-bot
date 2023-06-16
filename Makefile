@@ -60,3 +60,8 @@ conda-env: ## Create a conda environment
 	conda create -n $(CONDA_ENV) -y python=$(CONDA_PY_VER) ipykernel graphviz pip protobuf=3.20.3 poetry==1.5.0
 	@echo "Installing dependencies"
 	$(CONDA_ACTIVATE) $(CONDA_ENV); poetry install
+
+.PHONY: test
+test: ## Run unit tests via pytest
+	@echo "Running unit tests via pytest..."
+	$(PYTHON_INTERPRETER) -m pytest
