@@ -1,4 +1,0 @@
-pytest~=5.4
-black~=22.0
-isort~=5.7
-flake8~=5.0
