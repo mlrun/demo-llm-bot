@@ -3,7 +3,7 @@ import importlib
 import mlrun
 
 IMAGE_REQUIREMENTS = [
-    "poetry==1.5.0",
+    # "poetry==1.5.0",
     "mlrun==1.3.3",
     "langchain==0.0.200",
     "chromadb==0.3.26",
@@ -48,29 +48,19 @@ def create_and_set_project(
     # Set or build the default image:
     if force_build or project.default_image is None:
         if default_image is None:
-            project.set_source(git_source, pull_at_runtime=False)
-            print("Building image for the demo:")
+            print("Building default project image...")
             image_builder = project.set_function(
                 func="src/project/project_setup.py",
                 name="image-builder",
                 handler="assert_build",
                 kind="job",
-                requirements=" ".join(IMAGE_REQUIREMENTS),
             )
-            # build_status = project.build_function(
-            #     function=image_builder,
-            #     base_image=default_base_image,
-            #     commands=[
-            #         f"pip install {' '.join(IMAGE_REQUIREMENTS)} && cd /mlrun/code && poetry install"
-            #     ],
-            # )
-            # image_builder.build_config(
-            #     base_image=default_base_image,
-            #     commands=[f"pip install {' '.join(IMAGE_REQUIREMENTS)} && poetry install"],
-            # )
-            assert image_builder.deploy()
-            default_image = image_builder.spec.image
-            # default_image = build_status.outputs["image"]
+            build_status = project.build_function(
+                function=image_builder,
+                base_image=default_base_image,
+                requirements=IMAGE_REQUIREMENTS,
+            )
+            default_image = build_status.outputs["image"]
         project.set_default_image(default_image)
 
     # Set the project git source:
