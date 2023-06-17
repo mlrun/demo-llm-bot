@@ -3,6 +3,7 @@ import importlib
 import mlrun
 
 IMAGE_REQUIREMENTS = [
+    "poetry==1.5.0",
     "mlrun==1.3.3",
     "langchain==0.0.200",
     "chromadb==0.3.26",
@@ -12,17 +13,20 @@ IMAGE_REQUIREMENTS = [
 
 def assert_build():
     for module_name in IMAGE_REQUIREMENTS:
-        module_without_version = module_name.split("==")[0]
-        module = importlib.import_module(module_without_version)
+        name, version = module_name.split("==")
+        module = importlib.import_module(name)
         print(module.__version__)
+        assert module.__version__ == version
 
 
 def create_and_set_project(
     git_source: str,
     name: str = "llmbot",
     default_image: str = None,
+    default_base_image: str = "mlrun/ml-models:1.3.3",
     user_project: bool = False,
     env_file: str = None,
+    force_build: bool = False,
 ):
     """
     Creating the project for this demo.
@@ -33,6 +37,8 @@ def create_and_set_project(
 
     :returns: a fully prepared project for this demo.
     """
+
+    # Set MLRun DB endpoint
     if env_file:
         mlrun.set_env_from_file(env_file=env_file)
 
@@ -40,19 +46,21 @@ def create_and_set_project(
     project = mlrun.get_or_create_project(name=name, context="./", user_project=user_project)
 
     # Set or build the default image:
-    if project.default_image is None:
+    if force_build or project.default_image is None:
         if default_image is None:
             print("Building image for the demo:")
             image_builder = project.set_function(
-                "src/project/project_setup.py",
+                func="src/project/project_setup.py",
                 name="image-builder",
                 handler="assert_build",
                 kind="job",
-                image="mlrun/mlrun",
-                requirements=IMAGE_REQUIREMENTS,
             )
-            assert image_builder.deploy()
-            default_image = image_builder.spec.image
+            build_status = project.build_function(
+                function=image_builder,
+                base_image=default_base_image,
+                commands=[f"pip install {' '.join(IMAGE_REQUIREMENTS)}", "poetry install"],
+            )
+            default_image = build_status.outputs["image"]
         project.set_default_image(default_image)
 
     # Set the project git source:
