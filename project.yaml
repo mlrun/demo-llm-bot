@@ -22,11 +22,10 @@ spec:
   workflows: []
   artifacts: []
   conda: ''
-  source: git://github.com/mlrun/demo-llm-bot#langchain-refactor
+  source: git://github.com/mlrun/demo-llm-bot.git#refs/heads/langchain-refactor
   origin_url: git://github.com/mlrun/demo-llm-bot.git#refs/heads/langchain-refactor
   load_source_on_run: true
   desired_state: online
-  owner: nick
   default_image: .mlrun/func-llmbot-image-builder:latest
 status:
   state: online

@@ -1,6 +1,6 @@
 import mlrun
 
-from llmbot import AppConfig, ingest
+from src.llmbot import AppConfig, ingest
 
 
 def handler(
