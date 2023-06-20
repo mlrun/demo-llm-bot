@@ -13,10 +13,16 @@ spec:
     name: image-builder
     kind: job
     handler: assert_build
-  workflows: []
+  - url: src/project/functions/serve_llm.py
+    name: serve-llm
+    kind: serving
+    with_repo: true
+  workflows:
+  - path: src/project/workflows/ingest_and_serve.py
+    name: main
   artifacts: []
   conda: ''
-  source: git://github.com/mlrun/demo-llm-bot#langchain-refactor
+  source: git://github.com/mlrun/demo-llm-bot#main
   origin_url: git://github.com/mlrun/demo-llm-bot.git#refs/heads/langchain-refactor
   load_source_on_run: true
   desired_state: online

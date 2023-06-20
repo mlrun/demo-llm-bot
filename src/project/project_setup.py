@@ -66,7 +66,7 @@ def create_and_set_project(
     # Set the project git source:
     project.set_source(git_source, pull_at_runtime=True)
 
-    # Set the data collection function:
+    # Set MLRun functions
     project.set_function(
         name="ingest-documents",
         func="src/project/functions/ingest_documents.py",
@@ -74,6 +74,16 @@ def create_and_set_project(
         handler="handler",
         with_repo=True,
     )
+
+    project.set_function(
+        name="serve-llm",
+        func="src/project/functions/serve_llm.py",
+        kind="serving",
+        with_repo=True,
+    )
+
+    # Set MLRun workflows
+    project.set_workflow(name="main", workflow_path="src/project/workflows/ingest_and_serve.py")
 
     # Save and return the project:
     project.save()
