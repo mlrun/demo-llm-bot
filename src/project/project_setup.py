@@ -79,7 +79,9 @@ def create_and_set_project(
         name="serve-llm",
         func="src/project/functions/serve_llm.py",
         kind="serving",
+        image=default_base_image,
         with_repo=True,
+        requirements=IMAGE_REQUIREMENTS,
     )
 
     # Set MLRun workflows
