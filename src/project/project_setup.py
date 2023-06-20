@@ -3,11 +3,11 @@ import importlib
 import mlrun
 
 IMAGE_REQUIREMENTS = [
-    # "poetry==1.5.0",
     "mlrun==1.3.3",
     "langchain==0.0.200",
     "chromadb==0.3.26",
     "sentence-transformers==2.2.2",
+    "openai==0.27.8",
 ]
 
 

@@ -141,7 +141,7 @@ def does_vectorstore_exist(persist_directory: str) -> bool:
 
 def ingest(config: AppConfig):
     chroma_settings = config.get_chroma_settings()
-    embeddings = config.embeddings_model.get_embedding_fn()
+    embeddings = config.embeddings_model.get_embeddings()
 
     if does_vectorstore_exist(config.persist_directory):
         # Update and store locally vectorstore

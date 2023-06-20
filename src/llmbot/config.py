@@ -1,45 +1,73 @@
 import logging
 
 from chromadb.config import Settings
+from langchain.chat_models.base import BaseChatModel
 from langchain.embeddings.base import Embeddings
 from pydantic import BaseModel, BaseSettings, PyObject
 
 logger = logging.getLogger(name="mlrun")
 
+# LLM model config
 
-class LLMModel(BaseModel):
-    name: str
+
+class LLMModelConfig(BaseModel):
+    model: str
     temperature: int
+    model_class: PyObject
+
+    def get_llm(self) -> BaseChatModel:
+        return self.model_class(model=self.model, temperature=self.temperature)
 
 
-class OpenAIModel(LLMModel):
-    name: str = "gpt-3.5-turbo"
+class OpenAIModelConfig(LLMModelConfig):
+    model: str = "gpt-3.5-turbo"
     temperature: int = 0
+    model_class: PyObject = "langchain.chat_models.openai.ChatOpenAI"
 
 
-class EmbeddingsModel(BaseModel):
+# Embeddings model config
+
+
+class EmbeddingsModelConfig(BaseModel):
     name: str
     chunk_size: int
     chunk_overlap: int
-    embeddings_fn: PyObject
+    embeddings_class: PyObject
 
-    def get_embedding_fn(self) -> Embeddings:
-        return self.embeddings_fn(model_name=self.name)
+    def get_embeddings(self) -> Embeddings:
+        return self.embeddings_class(model_name=self.name)
 
 
-class HFEmbeddingsModel(EmbeddingsModel):
+class HFEmbeddingsModelConfig(EmbeddingsModelConfig):
     name: str = "all-MiniLM-L6-v2"
     chunk_size: int = 500
     chunk_overlap: int = 50
-    embeddings_fn: PyObject = "langchain.embeddings.HuggingFaceEmbeddings"
+    embeddings_class: PyObject = "langchain.embeddings.HuggingFaceEmbeddings"
+
+
+# Retrieval chain config
+
+
+class RetrievalChainConfig(BaseModel):
+    chain_type: str
+    k: int
+
+
+class RetrievalQAWithSourcesChainConfig(RetrievalChainConfig):
+    chain_type: str = "stuff"
+    k: int = 3
+
+
+# Main config
 
 
 class AppConfig(BaseSettings):
     persist_directory: str = "db"
     source_directory: str = "data/sample"
     chroma_db_impl: str = "duckdb+parquet"
-    embeddings_model: EmbeddingsModel = HFEmbeddingsModel()
-    llm_model: LLMModel = OpenAIModel()
+    embeddings_model: EmbeddingsModelConfig = HFEmbeddingsModelConfig()
+    llm_model: LLMModelConfig = OpenAIModelConfig()
+    retrieval_chain: RetrievalChainConfig = RetrievalQAWithSourcesChainConfig()
 
     MLRUN_DBPATH: str
     OPENAI_API_KEY: str
