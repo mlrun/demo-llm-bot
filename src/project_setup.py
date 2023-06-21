@@ -8,6 +8,7 @@ IMAGE_REQUIREMENTS = [
     "chromadb==0.3.26",
     "sentence-transformers==2.2.2",
     "openai==0.27.8",
+    "gradio==3.35.2",
 ]
 
 

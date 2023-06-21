@@ -24,6 +24,7 @@ spec:
     - chromadb==0.3.26
     - sentence-transformers==2.2.2
     - openai==0.27.8
+    - gradio==3.35.2
   workflows:
   - path: src/ingest_and_serve.py
     name: main
