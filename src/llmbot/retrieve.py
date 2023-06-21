@@ -3,9 +3,9 @@ import logging
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.vectorstores import Chroma
 
-from .config import AppConfig
+from .config import AppConfig, setup_logging
 
-logger = logging.getLogger(name="mlrun")
+logger = setup_logging()
 
 
 def build_retrieval_chain(config: AppConfig):

@@ -5,8 +5,6 @@ from langchain.chat_models.base import BaseChatModel
 from langchain.embeddings.base import Embeddings
 from pydantic import BaseModel, BaseSettings, PyObject
 
-logger = logging.getLogger(name="mlrun")
-
 # LLM model config
 
 
@@ -83,3 +81,15 @@ class AppConfig(BaseSettings):
             persist_directory=self.persist_directory,
             anonymized_telemetry=False,
         )
+
+
+# Logging config
+
+
+def setup_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=[logging.StreamHandler()],
+    )
+    return logging.getLogger("llmbot")

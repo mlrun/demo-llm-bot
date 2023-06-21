@@ -4,16 +4,16 @@ metadata:
   created: '2023-06-20T23:15:02.533000'
 spec:
   functions:
-  - url: src/project/functions/ingest_documents.py
+  - url: src/ingest_documents.py
     name: ingest-documents
     kind: job
     handler: handler
     with_repo: true
-  - url: src/project/project_setup.py
+  - url: src/project_setup.py
     name: image-builder
     kind: job
     handler: assert_build
-  - url: src/project/functions/serve_llm.py
+  - url: src/serve_llm.py
     name: serve-llm
     kind: serving
     image: mlrun/ml-models:1.3.3
@@ -24,12 +24,13 @@ spec:
     - chromadb==0.3.26
     - sentence-transformers==2.2.2
     - openai==0.27.8
+    - gradio==3.35.2
   workflows:
-  - path: src/project/workflows/ingest_and_serve.py
+  - path: src/ingest_and_serve.py
     name: main
   artifacts: []
   conda: ''
-  source: git://github.com/mlrun/demo-llm-bot#main
+  source: git://github.com/mlrun/demo-llm-bot#refactor
   origin_url: git://github.com/mlrun/demo-llm-bot.git#refs/heads/main
   load_source_on_run: true
   desired_state: online
