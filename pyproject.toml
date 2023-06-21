@@ -6,7 +6,6 @@ authors = ["Nick Schenone <nicks@iguazio.com>", "Yaron Haviv <yaronh@iguazio.com
 readme = "README.md"
 packages = [
     { include = "llmbot", from = "src"},
-    { include = "project", from = "src"},
 ]
 
 [tool.poetry.dependencies]
