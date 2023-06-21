@@ -30,7 +30,7 @@ spec:
     name: main
   artifacts: []
   conda: ''
-  source: git://github.com/mlrun/demo-llm-bot#refactor
+  source: git://github.com/mlrun/demo-llm-bot#main
   origin_url: git://github.com/mlrun/demo-llm-bot.git#refs/heads/main
   load_source_on_run: true
   desired_state: online
