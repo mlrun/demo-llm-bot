@@ -5,7 +5,7 @@ from kfp import dsl
 
 
 @dsl.pipeline(name="LLM Pipeline")
-def kfpipeline(
+def pipeline(
     persist_directory: str,
 ):
     # Get our project object:
