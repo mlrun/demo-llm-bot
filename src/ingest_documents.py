@@ -9,7 +9,9 @@ def handler(
 ):
     config = AppConfig(persist_directory=persist_directory)
 
-    context.logger.info(f"Starting ingestion from source directory {config.source_directory}...")
+    context.logger.info(
+        f"Starting ingestion from source directory {config.source_directory}..."
+    )
     ingest(config=config)
 
     context.logger.info(

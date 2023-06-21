@@ -37,8 +37,8 @@ clean: ## Delete all compiled Python files
 .PHONY: fmt
 fmt: ## Format the code (using black and isort)
 	@echo "Running black fmt..."
-	$(PYTHON_INTERPRETER) -m black llmbot
-	$(PYTHON_INTERPRETER) -m isort llmbot
+	$(PYTHON_INTERPRETER) -m black src
+	$(PYTHON_INTERPRETER) -m isort src
 
 .PHONY: lint
 lint: fmt-check flake8 ## Run lint on the code
@@ -46,13 +46,13 @@ lint: fmt-check flake8 ## Run lint on the code
 .PHONY: fmt-check
 fmt-check: ## Format and check the code (using black and isort)
 	@echo "Running black+isort fmt check..."
-	$(PYTHON_INTERPRETER) -m black --check --diff llmbot
-	$(PYTHON_INTERPRETER) -m isort --check --diff llmbot
+	$(PYTHON_INTERPRETER) -m black --check --diff src
+	$(PYTHON_INTERPRETER) -m isort --check --diff src
 
 .PHONY: flake8
 flake8: ## Run flake8 lint
 	@echo "Running flake8 lint..."
-	$(PYTHON_INTERPRETER) -m flake8 llmbot
+	$(PYTHON_INTERPRETER) -m flake8 src
 
 .PHONY: conda-env
 conda-env: ## Create a conda environment

@@ -25,7 +25,9 @@ def pipeline(
     ingest_fn = project.get_function("ingest-documents")
     ingest_fn.apply(mlrun.mount_v3io())
     apply_openai_env(project=project, fn=ingest_fn)
-    ingest_run = project.run_function(ingest_fn, params={"persist_directory": persist_directory})
+    ingest_run = project.run_function(
+        ingest_fn, params={"persist_directory": persist_directory}
+    )
 
     # Serve LLM
     serving_fn = project.get_function("serve-llm")

@@ -11,7 +11,8 @@ def query_llm(endpoint_url: str, message: str) -> str:
 with gr.Blocks(analytics_enabled=False, theme=gr.themes.Soft()) as chat:
     with gr.Row():
         endpoint_url = gr.Textbox(
-            label="Model Endpoint", placeholder="Enter model endpoint for inferencing..."
+            label="Model Endpoint",
+            placeholder="Enter model endpoint for inferencing...",
         )
     with gr.Row():
         chatbot = gr.Chatbot()

@@ -44,7 +44,9 @@ def create_and_set_project(
         mlrun.set_env_from_file(env_file=env_file)
 
     # Get / Create a project from the MLRun DB:
-    project = mlrun.get_or_create_project(name=name, context="./", user_project=user_project)
+    project = mlrun.get_or_create_project(
+        name=name, context="./", user_project=user_project
+    )
 
     # Set or build the default image:
     if force_build or project.default_image is None:

@@ -87,13 +87,21 @@ def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Docum
     """
     all_files = []
     for ext in LOADER_MAPPING:
-        all_files.extend(glob.glob(os.path.join(source_dir, f"**/*{ext}"), recursive=True))
-    filtered_files = [file_path for file_path in all_files if file_path not in ignored_files]
+        all_files.extend(
+            glob.glob(os.path.join(source_dir, f"**/*{ext}"), recursive=True)
+        )
+    filtered_files = [
+        file_path for file_path in all_files if file_path not in ignored_files
+    ]
 
     with Pool(processes=os.cpu_count()) as pool:
         results = []
-        with tqdm(total=len(filtered_files), desc="Loading new documents", ncols=80) as pbar:
-            for i, docs in enumerate(pool.imap_unordered(load_single_document, filtered_files)):
+        with tqdm(
+            total=len(filtered_files), desc="Loading new documents", ncols=80
+        ) as pbar:
+            for i, docs in enumerate(
+                pool.imap_unordered(load_single_document, filtered_files)
+            ):
                 results.extend(docs)
                 pbar.update()
 
@@ -119,7 +127,9 @@ def process_documents(
         chunk_size=chunk_size, chunk_overlap=chunk_overlap
     )
     texts = text_splitter.split_documents(documents)
-    logger.info(f"Split into {len(texts)} chunks of text (max. {chunk_size} tokens each)")
+    logger.info(
+        f"Split into {len(texts)} chunks of text (max. {chunk_size} tokens each)"
+    )
     return texts
 
 
@@ -130,9 +140,13 @@ def does_vectorstore_exist(persist_directory: str) -> bool:
     if os.path.exists(os.path.join(persist_directory, "index")):
         if os.path.exists(
             os.path.join(persist_directory, "chroma-collections.parquet")
-        ) and os.path.exists(os.path.join(persist_directory, "chroma-embeddings.parquet")):
+        ) and os.path.exists(
+            os.path.join(persist_directory, "chroma-embeddings.parquet")
+        ):
             list_index_files = glob.glob(os.path.join(persist_directory, "index/*.bin"))
-            list_index_files += glob.glob(os.path.join(persist_directory, "index/*.pkl"))
+            list_index_files += glob.glob(
+                os.path.join(persist_directory, "index/*.pkl")
+            )
             # At least 3 documents are needed in a working vectorstore
             if len(list_index_files) > 3:
                 return True
