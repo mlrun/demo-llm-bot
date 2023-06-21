@@ -34,7 +34,7 @@ def kfpipeline(
     graph = serving_fn.set_topology("flow", engine="async")
     graph.add_step(
         name="llm",
-        class_name="src.project.workflows.ingest_and_serve.QueryLLM",
+        class_name="src.project.functions.serve_llm.QueryLLM",
         persist_directory=str(persist_directory),
     ).respond()
 

@@ -1,7 +1,7 @@
 kind: project
 metadata:
   name: llmbot
-  created: '2023-06-16T23:36:09.253000'
+  created: '2023-06-20T23:15:02.533000'
 spec:
   functions:
   - url: src/project/functions/ingest_documents.py
@@ -30,7 +30,7 @@ spec:
   artifacts: []
   conda: ''
   source: git://github.com/mlrun/demo-llm-bot#main
-  origin_url: git://github.com/mlrun/demo-llm-bot.git#refs/heads/langchain-refactor
+  origin_url: git://github.com/mlrun/demo-llm-bot.git#refs/heads/main
   load_source_on_run: true
   desired_state: online
   owner: nick
