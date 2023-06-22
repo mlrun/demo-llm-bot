@@ -1,13 +1,11 @@
-from src.llmbot import AppConfig, build_retrieval_chain
+from src.llmbot import AppConfig, build_agent
 
 
 class QueryLLM:
     def __init__(self, persist_directory: str):
-        self.qa_chain = build_retrieval_chain(
-            config=AppConfig(persist_directory=persist_directory)
-        )
+        self.agent = build_agent(config=AppConfig(persist_directory=persist_directory))
 
     def do(self, event):
-        resp = self.qa_chain({"question": event["question"]})
+        resp = self.agent(event["question"])
         event.update(resp)
         return event

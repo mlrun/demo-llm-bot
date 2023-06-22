@@ -1,14 +1,12 @@
-import logging
-
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.vectorstores import Chroma
 
-from .config import AppConfig, setup_logging
+from ..config import AppConfig, setup_logging
 
 logger = setup_logging()
 
 
-def build_retrieval_chain(config: AppConfig):
+def build_retrieval_qa_with_sources_chain(config: AppConfig):
     # Embeddings function
     embeddings = config.embeddings_model.get_embeddings()
 
