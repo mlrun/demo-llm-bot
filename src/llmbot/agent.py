@@ -35,7 +35,7 @@ def build_agent(config: AppConfig):
     return initialize_agent(
         tools=tools,
         llm=config.llm_model.get_llm(),
-        agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
+        agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION,
         memory=ConversationBufferMemory(memory_key="chat_history"),
         verbose=True,
         agent_kwargs=agent_kwargs,
