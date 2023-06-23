@@ -22,8 +22,13 @@ class QueryLLM:
         return ai_message
 
     def do(self, event):
-        agent_resp = self.agent(
-            {"input": event["question"], "chat_history": self.memory.chat_memory.messages}
-        )
-        event["output"] = self.parse_agent_resp(agent_resp=agent_resp)
+        if "reset_memory" in event.path:
+            self.memory.clear()
+            print("Resetting memory...")
+            event["output"] = "Memory reset successful"
+        else:
+            agent_resp = self.agent(
+                {"input": event["question"], "chat_history": self.memory.chat_memory.messages}
+            )
+            event["output"] = self.parse_agent_resp(agent_resp=agent_resp)
         return event
