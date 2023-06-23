@@ -5,7 +5,9 @@ from src.llmbot import AppConfig, build_agent
 
 class QueryLLM:
     def __init__(self, persist_directory: str):
-        self.memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+        self.memory = ConversationBufferMemory(
+            memory_key="chat_history", return_messages=True
+        )
         self.agent = build_agent(
             config=AppConfig(persist_directory=persist_directory), memory=self.memory
         )
@@ -23,12 +25,16 @@ class QueryLLM:
 
     def do(self, event):
         if "reset_memory" in event.path:
-            self.memory.clear()
             print("Resetting memory...")
+            self.memory.clear()
+            event.body = event.body if event.body else {}
             event["output"] = "Memory reset successful"
         else:
             agent_resp = self.agent(
-                {"input": event["question"], "chat_history": self.memory.chat_memory.messages}
+                {
+                    "input": event.body["question"],
+                    "chat_history": self.memory.chat_memory.messages,
+                }
             )
-            event["output"] = self.parse_agent_resp(agent_resp=agent_resp)
+            event.body["output"] = self.parse_agent_resp(agent_resp=agent_resp)
         return event

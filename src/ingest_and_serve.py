@@ -38,6 +38,7 @@ def pipeline(
         name="llm",
         class_name="src.serve_llm.QueryLLM",
         persist_directory=str(persist_directory),
+        full_event=True,
     ).respond()
 
     project.deploy_function(serving_fn).after(ingest_run)
