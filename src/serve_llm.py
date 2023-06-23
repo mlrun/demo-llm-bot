@@ -28,7 +28,7 @@ class QueryLLM:
             print("Resetting memory...")
             self.memory.clear()
             event.body = event.body if event.body else {}
-            event["output"] = "Memory reset successful"
+            event.body["output"] = "Memory reset successful"
         else:
             agent_resp = self.agent(
                 {
