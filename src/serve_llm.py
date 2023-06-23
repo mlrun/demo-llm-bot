@@ -1,32 +1,29 @@
+from langchain.memory import ConversationBufferMemory
+
 from src.llmbot import AppConfig, build_agent
-
-
-def get_sources(agent_resp: dict) -> list:
-    sources = []
-    if "intermediate_steps" in agent_resp:
-        for step in agent_resp["intermediate_steps"]:
-            _, outputs = step
-            if "sources" in outputs:
-                sources.append(outputs["sources"])
-    return sources
-
-
-def format_response(answer: str, sources: str) -> str:
-    sources = "\n".join(sources)
-    return f"{answer} \n\nSOURCES:\n{sources}"
 
 
 class QueryLLM:
     def __init__(self, persist_directory: str):
-        self.agent = build_agent(config=AppConfig(persist_directory=persist_directory))
+        self.memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+        self.agent = build_agent(
+            config=AppConfig(persist_directory=persist_directory), memory=self.memory
+        )
+
+    def parse_agent_resp(self, agent_resp: dict) -> str:
+        """Parse agent output and add to memory"""
+        user_message = agent_resp["input"]
+        if isinstance(agent_resp["output"], dict):
+            ai_message = agent_resp["output"]["answer"]
+        else:
+            ai_message = agent_resp["output"]
+        self.memory.chat_memory.add_user_message(user_message)
+        self.memory.chat_memory.add_ai_message(ai_message)
+        return ai_message
 
     def do(self, event):
-        resp = self.agent(event["question"])
-        resp.pop("chat_history")
-        sources = get_sources(resp)
-        if sources:
-            formatted_response = format_response(answer=resp["output"], sources=sources)
-            resp["output"] = formatted_response
-        resp.pop("intermediate_steps")
-        event.update(resp)
+        agent_resp = self.agent(
+            {"input": event["question"], "chat_history": self.memory.chat_memory.messages}
+        )
+        event["output"] = self.parse_agent_resp(agent_resp=agent_resp)
         return event
