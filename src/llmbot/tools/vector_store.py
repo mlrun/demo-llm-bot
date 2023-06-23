@@ -1,3 +1,4 @@
+from langchain.agents import Tool
 from langchain.chains import RetrievalQAWithSourcesChain
 from langchain.vectorstores import Chroma
 
@@ -23,5 +24,11 @@ def build_retrieval_qa_with_sources_chain(config: AppConfig):
 
     # QA chain with sources
     return RetrievalQAWithSourcesChain.from_chain_type(
-        llm=llm, chain_type=config.retrieval_chain.chain_type, retriever=retriever
+        llm=llm,
+        chain_type=config.retrieval_chain.chain_type,
+        retriever=retriever,
     )
+
+
+def build_vector_store_tool(config: AppConfig) -> Tool:
+    pass
