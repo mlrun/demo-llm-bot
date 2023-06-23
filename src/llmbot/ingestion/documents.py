@@ -23,7 +23,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 from tqdm import tqdm
 
-from .config import AppConfig, setup_logging
+from ..config import AppConfig, setup_logging
 
 logger = setup_logging()
 
@@ -153,7 +153,7 @@ def does_vectorstore_exist(persist_directory: str) -> bool:
     return False
 
 
-def ingest(config: AppConfig):
+def ingest_documents(config: AppConfig):
     chroma_settings = config.get_chroma_settings()
     embeddings = config.embeddings_model.get_embeddings()
 

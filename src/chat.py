@@ -5,7 +5,14 @@ import requests
 def query_llm(endpoint_url: str, message: str) -> str:
     resp = requests.post(url=endpoint_url, json={"question": message}, verify=False)
     resp_json = resp.json()
-    return f"""{resp_json['answer']} \nSources: \n{resp_json['sources']}"""
+    return resp_json["output"]
+
+
+def reset_memory(endpoint_url: str) -> None:
+    resp = requests.get(url=f"{endpoint_url}/reset_memory", verify=False)
+    resp_json = resp.json()
+    print(resp_json["output"])
+    return None
 
 
 with gr.Blocks(analytics_enabled=False, theme=gr.themes.Soft()) as chat:
@@ -28,4 +35,4 @@ with gr.Blocks(analytics_enabled=False, theme=gr.themes.Soft()) as chat:
         return "", chat_history
 
     message.submit(respond, [endpoint_url, message, chatbot], [message, chatbot])
-    clear.click(lambda: None, None, chatbot, queue=False)
+    clear.click(reset_memory, [endpoint_url], chatbot, queue=False)

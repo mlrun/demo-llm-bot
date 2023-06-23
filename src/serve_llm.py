@@ -1,13 +1,40 @@
-from src.llmbot import AppConfig, build_retrieval_chain
+from langchain.memory import ConversationBufferMemory
+
+from src.llmbot import AppConfig, build_agent
 
 
 class QueryLLM:
     def __init__(self, persist_directory: str):
-        self.qa_chain = build_retrieval_chain(
-            config=AppConfig(persist_directory=persist_directory)
+        self.memory = ConversationBufferMemory(
+            memory_key="chat_history", return_messages=True
+        )
+        self.agent = build_agent(
+            config=AppConfig(persist_directory=persist_directory), memory=self.memory
         )
 
+    def parse_agent_resp(self, agent_resp: dict) -> str:
+        """Parse agent output and add to memory"""
+        user_message = agent_resp["input"]
+        if isinstance(agent_resp["output"], dict):
+            ai_message = agent_resp["output"]["answer"]
+        else:
+            ai_message = agent_resp["output"]
+        self.memory.chat_memory.add_user_message(user_message)
+        self.memory.chat_memory.add_ai_message(ai_message)
+        return ai_message
+
     def do(self, event):
-        resp = self.qa_chain({"question": event["question"]})
-        event.update(resp)
+        if "reset_memory" in event.path:
+            print("Resetting memory...")
+            self.memory.clear()
+            event.body = event.body if event.body else {}
+            event.body["output"] = "Memory reset successful"
+        else:
+            agent_resp = self.agent(
+                {
+                    "input": event.body["question"],
+                    "chat_history": self.memory.chat_memory.messages,
+                }
+            )
+            event.body["output"] = self.parse_agent_resp(agent_resp=agent_resp)
         return event

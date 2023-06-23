@@ -1,6 +1,7 @@
 import mlrun
 
-from src.llmbot import AppConfig, ingest
+from src.llmbot import AppConfig
+from src.llmbot.ingestion import ingest_documents
 
 
 def handler(
@@ -12,7 +13,7 @@ def handler(
     context.logger.info(
         f"Starting ingestion from source directory {config.source_directory}..."
     )
-    ingest(config=config)
+    ingest_documents(config=config)
 
     context.logger.info(
         f"Ingestion complete and stored in persist directory {config.persist_directory}"
