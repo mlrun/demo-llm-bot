@@ -43,5 +43,6 @@ def build_agent(config: AppConfig):
         ),
         verbose=True,
         return_intermediate_steps=True,
+        handle_parsing_errors=True,
         # agent_kwargs=agent_kwargs,
     )
