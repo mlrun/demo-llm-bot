@@ -37,6 +37,5 @@ def build_agent(config: AppConfig, memory: ConversationBufferMemory):
         tools=tools,
         llm=config.llm_model.get_llm(),
         agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION,
-        memory=memory,
         verbose=True,
     )
