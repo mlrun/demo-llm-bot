@@ -6,14 +6,10 @@ from langchain.schema import messages_to_dict
 memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
 
-def memory_to_json(memory: ConversationBufferMemory) -> None:
-    return messages_to_dict(memory.chat_memory.messages)
-
-
 def query_llm(endpoint_url: str, message: str) -> str:
     resp = requests.post(
         url=endpoint_url,
-        json={"question": message, "chat_history": memory_to_json(memory=memory)},
+        json={"question": message, "chat_history": messages_to_dict(memory.chat_memory.messages)},
         verify=False,
     )
     resp_json = resp.json()
