@@ -67,7 +67,7 @@ Once the data has been indexed and the LLM application is running, the endpoint 
 
 ```python
 serving_fn = project.get_function("serve-llm")
-serving_fn.invoke(path="/", body={"question" : "How tall are llamas?"})
+serving_fn.invoke(path="/", body={"question" : "How tall are llamas?", "chat_history" : []})
 ```
 
 Additionally, it can be used in the provided interactive chat application. This application will answer questions in a chatbot format using the provided documents as context. The response from the LLM will also specify which document was used to craft the response. It can be deployed locally with the following:
