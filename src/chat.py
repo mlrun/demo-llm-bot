@@ -1,17 +1,25 @@
 import gradio as gr
 import requests
+from langchain.memory import ConversationBufferMemory
+from langchain.schema import messages_to_dict
+
+memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
 
 def query_llm(endpoint_url: str, message: str) -> str:
-    resp = requests.post(url=endpoint_url, json={"question": message}, verify=False)
+    resp = requests.post(
+        url=endpoint_url,
+        json={"question": message, "chat_history": messages_to_dict(memory.chat_memory.messages)},
+        verify=False,
+    )
     resp_json = resp.json()
-    return resp_json["output"]
+    ai_message = resp_json["output"]
+    memory.save_context({"input": message}, {"output": ai_message})
+    return ai_message
 
 
-def reset_memory(endpoint_url: str) -> None:
-    resp = requests.get(url=f"{endpoint_url}/reset_memory", verify=False)
-    resp_json = resp.json()
-    print(resp_json["output"])
+def reset_memory() -> None:
+    memory.clear()
     return None
 
 
@@ -35,4 +43,4 @@ with gr.Blocks(analytics_enabled=False, theme=gr.themes.Soft()) as chat:
         return "", chat_history
 
     message.submit(respond, [endpoint_url, message, chatbot], [message, chatbot])
-    clear.click(reset_memory, [endpoint_url], chatbot, queue=False)
+    clear.click(reset_memory, None, chatbot, queue=False)
