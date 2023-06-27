@@ -1,5 +1,4 @@
 from langchain.agents import AgentType, Tool, initialize_agent
-from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
 
 from .chains import build_conversational_retrieval_chain, build_math_chain
 from .config import AppConfig, setup_logging
@@ -7,12 +6,16 @@ from .config import AppConfig, setup_logging
 logger = setup_logging()
 
 
-def build_agent(config: AppConfig, memory: ConversationBufferMemory):
-    read_only_memory = ReadOnlySharedMemory(memory=memory)
+def parse_agent_output(agent_resp: dict) -> str:
+    if isinstance(agent_resp["output"], dict):
+        ai_message = agent_resp["output"]["answer"]
+    else:
+        ai_message = agent_resp["output"]
+    return ai_message
 
-    conversational_retrieval_chain = build_conversational_retrieval_chain(
-        config=config, read_only_memory=read_only_memory
-    )
+
+def build_agent(config: AppConfig):
+    conversational_retrieval_chain = build_conversational_retrieval_chain(config=config)
     math_chain = build_math_chain(config=config)
 
     tools = [
