@@ -1,18 +1,19 @@
 kind: project
 metadata:
   name: llmbot
-  created: '2023-06-20T23:15:02.533000'
+  created: '2023-07-03T19:55:54.018000'
 spec:
   functions:
+  - url: src/project_setup.py
+    name: image-builder
+    kind: job
+    image: mlrun/ml-models:1.3.3
+    handler: assert_build
   - url: src/ingest_documents.py
     name: ingest-documents
     kind: job
     handler: handler
     with_repo: true
-  - url: src/project_setup.py
-    name: image-builder
-    kind: job
-    handler: assert_build
   - url: src/serve_llm.py
     name: serve-llm
     kind: serving
@@ -30,8 +31,8 @@ spec:
     name: main
   artifacts: []
   conda: ''
-  source: git://github.com/mlrun/demo-llm-bot#memory-refactor
-  origin_url: git://github.com/mlrun/demo-llm-bot.git#refs/heads/main
+  source: git://github.com/mlrun/demo-llm-bot#main
+  origin_url: git://github.com/mlrun/demo-llm-bot.git#refs/heads/db-agent
   load_source_on_run: true
   desired_state: online
   owner: nick

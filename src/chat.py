@@ -9,7 +9,10 @@ memory = ConversationBufferMemory(memory_key="chat_history", return_messages=Tru
 def query_llm(endpoint_url: str, message: str) -> str:
     resp = requests.post(
         url=endpoint_url,
-        json={"question": message, "chat_history": messages_to_dict(memory.chat_memory.messages)},
+        json={
+            "question": message,
+            "chat_history": messages_to_dict(memory.chat_memory.messages),
+        },
         verify=False,
     )
     resp_json = resp.json()

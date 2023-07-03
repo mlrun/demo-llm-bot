@@ -30,6 +30,7 @@ models/*
 !mlrun.env
 schedules
 !data/sample/*
+!data/sqlite/*
 scratch.ipynb
 
 ##########################
