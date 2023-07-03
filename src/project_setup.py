@@ -57,6 +57,7 @@ def create_and_set_project(
                 name="image-builder",
                 handler="assert_build",
                 kind="job",
+                image=default_base_image,
             )
             build_status = project.build_function(
                 function=image_builder,
@@ -65,6 +66,11 @@ def create_and_set_project(
             )
             default_image = build_status.outputs["image"]
         project.set_default_image(default_image)
+
+    # Export project to zip if relevant
+    if ".zip" in git_source:
+        print(f"Exporting project as zip archive to to {git_source}...")
+        project.export(git_source)
 
     # Set the project git source:
     project.set_source(git_source, pull_at_runtime=True)

@@ -1,4 +1,5 @@
 import logging
+import os
 
 from chromadb.config import Settings
 from langchain.chat_models.base import BaseChatModel
@@ -66,6 +67,11 @@ class AppConfig(BaseSettings):
     embeddings_model: EmbeddingsModelConfig = HFEmbeddingsModelConfig()
     llm_model: LLMModelConfig = OpenAIModelConfig()
     retrieval_chain: RetrievalChainConfig = RetrievalQAWithSourcesChainConfig()
+
+    # Nuclio functions store their code in a specific directory
+    repo_dir: str = (
+        "/opt/nuclio" if os.getenv("NUCLIO_FUNCTION_INSTANCE") else os.getcwd()
+    )
 
     MLRUN_DBPATH: str
     OPENAI_API_KEY: str

@@ -1,3 +1,5 @@
+import os
+
 from langchain.agents import AgentType, Tool, initialize_agent
 
 from .chains import (
@@ -22,7 +24,8 @@ def build_agent(config: AppConfig):
     conversational_retrieval_chain = build_conversational_retrieval_chain(config=config)
     math_chain = build_math_chain(config=config)
     penguin_sql_database_chain = build_sql_database_chain(
-        config=config, db_uri="sqlite:///data/sqlite/palmer_penguins.db"
+        config=config,
+        db_uri=f"sqlite:///{config.repo_dir}/data/sqlite/palmer_penguins.db",
     )
 
     tools = [
