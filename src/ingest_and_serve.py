@@ -15,18 +15,25 @@ def apply_openai_env(project: mlrun.projects.MlrunProject, fn: KubeResource) -> 
 
 
 @dsl.pipeline(name="LLM Pipeline")
-def pipeline(
-    persist_directory: str,
-):
+def pipeline(persist_directory: str, urls_file: str):
     # Get our project object:
     project = mlrun.get_current_project()
 
-    # Ingest and index data in vector store
-    ingest_fn = project.get_function("ingest-documents")
-    ingest_fn.apply(mlrun.mount_v3io())
-    apply_openai_env(project=project, fn=ingest_fn)
-    ingest_run = project.run_function(
-        ingest_fn, params={"persist_directory": persist_directory}
+    # Ingest and index documents in vector store
+    ingest_docs_fn = project.get_function("ingest-documents")
+    ingest_docs_fn.apply(mlrun.mount_v3io())
+    apply_openai_env(project=project, fn=ingest_docs_fn)
+    ingest_docs_run = project.run_function(
+        ingest_docs_fn, params={"persist_directory": persist_directory}
+    )
+
+    # Ingest and index URLs in vector store
+    ingest_urls_fn = project.get_function("ingest-urls")
+    ingest_urls_fn.apply(mlrun.mount_v3io())
+    apply_openai_env(project=project, fn=ingest_urls_fn)
+    ingest_urls_run = project.run_function(
+        ingest_urls_fn,
+        params={"persist_directory": persist_directory, "urls_file": urls_file},
     )
 
     # Serve LLM
@@ -41,4 +48,4 @@ def pipeline(
         full_event=True,
     ).respond()
 
-    project.deploy_function(serving_fn).after(ingest_run)
+    project.deploy_function(serving_fn).after(ingest_docs_run, ingest_urls_run)

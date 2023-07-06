@@ -85,6 +85,14 @@ def create_and_set_project(
     )
 
     project.set_function(
+        name="ingest-urls",
+        func="src/ingest_urls.py",
+        kind="job",
+        handler="handler",
+        with_repo=True,
+    )
+
+    project.set_function(
         name="serve-llm",
         func="src/serve_llm.py",
         kind="serving",

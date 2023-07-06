@@ -26,12 +26,17 @@ spec:
     - sentence-transformers==2.2.2
     - openai==0.27.8
     - gradio==3.35.2
+  - url: src/ingest_urls.py
+    name: ingest-urls
+    kind: job
+    handler: handler
+    with_repo: true
   workflows:
   - path: src/ingest_and_serve.py
     name: main
   artifacts: []
   conda: ''
-  source: git://github.com/mlrun/demo-llm-bot#main
+  source: git://github.com/mlrun/demo-llm-bot#mlops-content
   origin_url: git://github.com/mlrun/demo-llm-bot.git#refs/heads/db-agent
   load_source_on_run: true
   desired_state: online
