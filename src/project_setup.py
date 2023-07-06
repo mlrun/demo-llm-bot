@@ -9,6 +9,7 @@ IMAGE_REQUIREMENTS = [
     "sentence-transformers==2.2.2",
     "openai==0.27.8",
     "gradio==3.35.2",
+    "unstructured==0.7.12",
 ]
 
 

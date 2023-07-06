@@ -26,6 +26,7 @@ spec:
     - sentence-transformers==2.2.2
     - openai==0.27.8
     - gradio==3.35.2
+    - unstructured==0.7.12
   - url: src/ingest_urls.py
     name: ingest-urls
     kind: job
