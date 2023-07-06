@@ -93,7 +93,6 @@ def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Docum
     filtered_files = [
         file_path for file_path in all_files if file_path not in ignored_files
     ]
-
     with Pool(processes=os.cpu_count()) as pool:
         results = []
         with tqdm(
@@ -133,63 +132,24 @@ def process_documents(
     return texts
 
 
-def does_vectorstore_exist(persist_directory: str) -> bool:
-    """
-    Checks if vectorstore exists
-    """
-    if os.path.exists(os.path.join(persist_directory, "index")):
-        if os.path.exists(
-            os.path.join(persist_directory, "chroma-collections.parquet")
-        ) and os.path.exists(
-            os.path.join(persist_directory, "chroma-embeddings.parquet")
-        ):
-            list_index_files = glob.glob(os.path.join(persist_directory, "index/*.bin"))
-            list_index_files += glob.glob(
-                os.path.join(persist_directory, "index/*.pkl")
-            )
-            # At least 3 documents are needed in a working vectorstore
-            if len(list_index_files) > 3:
-                return True
-    return False
-
-
 def ingest_documents(config: AppConfig):
-    chroma_settings = config.get_chroma_settings()
-    embeddings = config.embeddings_model.get_embeddings()
-
-    if does_vectorstore_exist(config.persist_directory):
-        # Update and store locally vectorstore
-        logger.info(f"Appending to existing vectorstore at {config.persist_directory}")
-        db = Chroma(
-            persist_directory=config.persist_directory,
-            embedding_function=embeddings,
-            client_settings=chroma_settings,
-        )
-        collection = db.get()
-        texts = process_documents(
-            source_directory=config.source_directory,
-            chunk_size=config.embeddings_model.chunk_size,
-            chunk_overlap=config.embeddings_model.chunk_overlap,
-            ignored_files=[metadata["source"] for metadata in collection["metadatas"]],
-        )
-        if texts:
-            logger.info("Creating embeddings. May take some minutes...")
-            db.add_documents(texts)
-    else:
-        # Create and store locally vectorstore
-        logger.info("Creating new vectorstore")
-        texts = process_documents(
-            source_directory=config.source_directory,
-            chunk_size=config.embeddings_model.chunk_size,
-            chunk_overlap=config.embeddings_model.chunk_overlap,
-        )
+    logger.info(f"Using vectorstore at {config.persist_directory}")
+    db = Chroma(
+        persist_directory=config.persist_directory,
+        embedding_function=config.embeddings_model.get_embeddings(),
+        client_settings=config.get_chroma_settings(),
+    )
+    collection = db.get()
+    texts = process_documents(
+        source_directory=config.source_directory,
+        chunk_size=config.embeddings_model.chunk_size,
+        chunk_overlap=config.embeddings_model.chunk_overlap,
+        ignored_files=[metadata["source"] for metadata in collection["metadatas"]],
+    )
+    if texts:
         logger.info("Creating embeddings. May take some minutes...")
-        db = Chroma.from_documents(
-            texts,
-            embeddings,
-            persist_directory=config.persist_directory,
-            client_settings=chroma_settings,
-        )
+        db.add_documents(texts)
+
     db.persist()
     db = None
 
