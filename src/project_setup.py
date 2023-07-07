@@ -4,11 +4,12 @@ import mlrun
 
 IMAGE_REQUIREMENTS = [
     "mlrun==1.3.3",
-    "langchain==0.0.200",
+    "langchain==0.0.209",
     "chromadb==0.3.26",
     "sentence-transformers==2.2.2",
     "openai==0.27.8",
     "gradio==3.35.2",
+    "unstructured==0.7.12",
 ]
 
 
@@ -62,7 +63,11 @@ def create_and_set_project(
             build_status = project.build_function(
                 function=image_builder,
                 base_image=default_base_image,
-                requirements=IMAGE_REQUIREMENTS,
+                commands=[
+                    "apt-get update && apt-get install libmagic-mgc libmagic1 -y",
+                    f"pip install {' '.join(IMAGE_REQUIREMENTS)}",
+                    "python -m nltk.downloader punkt averaged_perceptron_tagger",
+                ],
             )
             default_image = build_status.outputs["image"]
         project.set_default_image(default_image)
@@ -79,6 +84,14 @@ def create_and_set_project(
     project.set_function(
         name="ingest-documents",
         func="src/ingest_documents.py",
+        kind="job",
+        handler="handler",
+        with_repo=True,
+    )
+
+    project.set_function(
+        name="ingest-urls",
+        func="src/ingest_urls.py",
         kind="job",
         handler="handler",
         with_repo=True,

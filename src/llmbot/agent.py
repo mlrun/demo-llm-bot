@@ -22,7 +22,6 @@ def parse_agent_output(agent_resp: dict) -> str:
 
 def build_agent(config: AppConfig):
     conversational_retrieval_chain = build_conversational_retrieval_chain(config=config)
-    math_chain = build_math_chain(config=config)
     penguin_sql_database_chain = build_sql_database_chain(
         config=config,
         db_uri=f"sqlite:///{config.repo_dir}/data/sqlite/palmer_penguins.db",
@@ -30,10 +29,10 @@ def build_agent(config: AppConfig):
 
     tools = [
         Tool(
-            name="Llama",
+            name="MLOps",
             func=conversational_retrieval_chain.__call__,
             description="""
-            Useful for when you need to answer questions about llamas.
+            Useful for when you need to answer questions about mlops, mlrun, iguazio, machine learning, data science, or other related topics.
             """,
             return_direct=True,
         ),
@@ -44,13 +43,6 @@ def build_agent(config: AppConfig):
             Useful for when you need to answer questions about Adelie, Gentoo, or Chinstrap penguins using a SQL database.
             """,
             return_direct=True,
-        ),
-        Tool(
-            name="Calculator",
-            func=math_chain.run,
-            description=f"""
-            Useful when you need to do math operations or arithmetic.
-            """,
         ),
     ]
 

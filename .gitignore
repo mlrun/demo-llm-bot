@@ -29,8 +29,9 @@ models/*
 *.env
 !mlrun.env
 schedules
-!data/sample/*
+!data/mlrun_docs_md/*
 !data/sqlite/*
+!data/urls/*
 scratch.ipynb
 
 ##########################
