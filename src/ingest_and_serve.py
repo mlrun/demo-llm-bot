@@ -38,7 +38,7 @@ def pipeline(persist_directory: str, source_directory: str, urls_file: str):
     ingest_urls_run = project.run_function(
         ingest_urls_fn,
         params={"persist_directory": persist_directory, "urls_file": urls_file},
-    )
+    ).after(ingest_docs_run)
 
     # Serve LLM
     serving_fn = project.get_function("serve-llm")
@@ -52,4 +52,4 @@ def pipeline(persist_directory: str, source_directory: str, urls_file: str):
         full_event=True,
     ).respond()
 
-    project.deploy_function(serving_fn).after(ingest_docs_run, ingest_urls_run)
+    project.deploy_function(serving_fn).after(ingest_urls_run)

@@ -1,9 +1,17 @@
+import re
+
 import gradio as gr
 import requests
 from langchain.memory import ConversationBufferMemory
 from langchain.schema import messages_to_dict
 
 memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+
+
+def enrich_docs_url(ai_message: str) -> str:
+    pattern = r"data/mlrun_docs_md/(.*?)\.md"
+    new_url = r"https://docs.mlrun.org/en/latest/\1.html"
+    return re.sub(pattern, new_url, ai_message)
 
 
 def query_llm(endpoint_url: str, message: str) -> str:
@@ -18,6 +26,7 @@ def query_llm(endpoint_url: str, message: str) -> str:
     resp_json = resp.json()
     ai_message = resp_json["output"]
     memory.save_context({"input": message}, {"output": ai_message})
+    ai_message = enrich_docs_url(ai_message=ai_message)
     return ai_message
 
 
