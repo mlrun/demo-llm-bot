@@ -107,7 +107,7 @@ def create_and_set_project(
     )
 
     # Set MLRun workflows
-    project.set_workflow(name="main", workflow_path="src/ingest_and_serve.py")
+    project.set_workflow(name="main", workflow_path="src/ingest_and_deploy_workflow.py")
 
     # Save and return the project:
     project.save()

@@ -33,11 +33,11 @@ spec:
     handler: handler
     with_repo: true
   workflows:
-  - path: src/ingest_and_serve.py
+  - path: src/ingest_and_deploy_workflow.py
     name: main
   artifacts: []
   conda: ''
-  source: git://github.com/mlrun/demo-llm-bot#mlops-content
+  source: git://github.com/mlrun/demo-llm-bot#main
   origin_url: git://github.com/mlrun/demo-llm-bot.git#refs/heads/db-agent
   load_source_on_run: true
   desired_state: online
