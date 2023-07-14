@@ -1,4 +1,6 @@
-from langchain.agents import Tool
+from langchain import LLMMathChain, SQLDatabase
+from langchain.agents import create_sql_agent
+from langchain.agents.agent_toolkits import SQLDatabaseToolkit
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chains.conversational_retrieval.prompts import CONDENSE_QUESTION_PROMPT
 from langchain.chains.llm import LLMChain
@@ -6,7 +8,7 @@ from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
 from langchain.vectorstores import Chroma
 
-from ..config import AppConfig, setup_logging
+from .config import AppConfig, setup_logging
 
 logger = setup_logging()
 
@@ -39,4 +41,18 @@ def build_conversational_retrieval_chain(config: AppConfig):
         ),
         memory=memory,
         verbose=True,
+    )
+
+
+def build_math_chain(config: AppConfig):
+    llm = config.llm_model.get_llm()
+    return LLMMathChain.from_llm(llm=llm, verbose=True)
+
+
+def build_sql_database_chain(config: AppConfig, db_uri: str):
+    llm = config.llm_model.get_llm()
+    db = SQLDatabase.from_uri(db_uri)
+    toolkit = SQLDatabaseToolkit(db=db, llm=llm)
+    return create_sql_agent(
+        llm=llm, toolkit=toolkit, verbose=True, handle_parsing_errors=True
     )
