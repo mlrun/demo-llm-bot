@@ -74,7 +74,7 @@ def create_and_set_project(
 
     # Export project to zip if relevant
     if ".zip" in git_source:
-        print(f"Exporting project as zip archive to to {git_source}...")
+        print(f"Exporting project as zip archive to {git_source}...")
         project.export(git_source)
 
     # Set the project git source:
