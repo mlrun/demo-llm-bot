@@ -1,5 +1,3 @@
-import os
-
 import mlrun
 from kfp import dsl
 from mlrun.runtimes.pod import KubeResource
