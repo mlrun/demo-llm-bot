@@ -1,6 +1,10 @@
 from langchain.agents import AgentType, Tool, initialize_agent
 
-from .chains import build_conversational_retrieval_chain, build_sql_database_chain
+from .chains import (
+    build_conversational_retrieval_chain,
+    build_csv_chain,
+    build_sql_database_chain,
+)
 from .config import AppConfig, setup_logging
 
 logger = setup_logging()
@@ -20,6 +24,9 @@ def build_agent(config: AppConfig):
         config=config,
         db_uri=f"sqlite:///{config.repo_dir}/data/sqlite/palmer_penguins.db",
     )
+    iris_csv_chain = build_csv_chain(
+        config=config, csv_path=f"{config.repo_dir}/data/csv/iris.csv"
+    )
 
     tools = [
         Tool(
@@ -37,6 +44,15 @@ def build_agent(config: AppConfig):
             description="""
             Useful for when you need to answer questions about Adelie,
             Gentoo, or Chinstrap penguins using a SQL database.
+            """,
+            return_direct=True,
+        ),
+        Tool(
+            name="Iris",
+            func=iris_csv_chain.run,
+            description="""
+            Useful for when you need to answer questions about iris
+            flowers. Includes petal sizes in cm per species.
             """,
             return_direct=True,
         ),

@@ -8,11 +8,17 @@ class QueryLLM:
         self.agent = build_agent(config=AppConfig(persist_directory=persist_directory))
 
     def do(self, event):
-        agent_resp = self.agent(
-            {
-                "input": event.body["question"],
-                "chat_history": messages_from_dict(event.body["chat_history"]),
-            }
-        )
-        event.body["output"] = parse_agent_output(agent_resp=agent_resp)
+        try:
+            agent_resp = self.agent(
+                {
+                    "input": event.body["question"],
+                    "chat_history": messages_from_dict(event.body["chat_history"]),
+                }
+            )
+            event.body["output"] = parse_agent_output(agent_resp=agent_resp)
+        except ValueError as e:
+            response = str(e)
+            if not response.startswith("Could not parse LLM output: `"):
+                raise e
+            event.body["output"] = response.removeprefix("Could not parse LLM output: `").removesuffix("`")
         return event

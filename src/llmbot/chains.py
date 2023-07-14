@@ -1,6 +1,7 @@
 from langchain import LLMMathChain, SQLDatabase
-from langchain.agents import create_sql_agent
+from langchain.agents import create_csv_agent, create_sql_agent
 from langchain.agents.agent_toolkits import SQLDatabaseToolkit
+from langchain.agents.agent_types import AgentType
 from langchain.chains import ConversationalRetrievalChain
 from langchain.chains.conversational_retrieval.prompts import CONDENSE_QUESTION_PROMPT
 from langchain.chains.llm import LLMChain
@@ -55,4 +56,15 @@ def build_sql_database_chain(config: AppConfig, db_uri: str):
     toolkit = SQLDatabaseToolkit(db=db, llm=llm)
     return create_sql_agent(
         llm=llm, toolkit=toolkit, verbose=True, handle_parsing_errors=True
+    )
+
+
+def build_csv_chain(config: AppConfig, csv_path: str):
+    llm = config.llm_model.get_llm()
+    return create_csv_agent(
+        llm=llm,
+        path=csv_path,
+        verbose=True,
+        agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+        prefix="Remove any ` from the Action Input",
     )
