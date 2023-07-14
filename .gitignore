@@ -32,6 +32,7 @@ schedules
 !data/mlrun_docs_md/*
 !data/sqlite/*
 !data/urls/*
+!data/csv/*
 scratch.ipynb
 
 ##########################
