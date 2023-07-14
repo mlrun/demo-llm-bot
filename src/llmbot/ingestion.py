@@ -1,6 +1,4 @@
-#!/usr/bin/env python3
 import glob
-import logging
 import os
 from multiprocessing import Pool
 from typing import List
@@ -11,45 +9,21 @@ from langchain.document_loaders import (
     EverNoteLoader,
     PyMuPDFLoader,
     TextLoader,
-    UnstructuredEmailLoader,
     UnstructuredEPubLoader,
     UnstructuredHTMLLoader,
     UnstructuredMarkdownLoader,
     UnstructuredODTLoader,
     UnstructuredPowerPointLoader,
+    UnstructuredURLLoader,
     UnstructuredWordDocumentLoader,
 )
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 from tqdm import tqdm
 
-from ..config import AppConfig, setup_logging
+from .config import AppConfig, setup_logging
 
 logger = setup_logging()
-
-
-# Custom document loaders
-class MyElmLoader(UnstructuredEmailLoader):
-    """Wrapper to fallback to text/plain when default does not work"""
-
-    def load(self) -> List[Document]:
-        """Wrapper adding fallback for elm without html"""
-        try:
-            try:
-                doc = UnstructuredEmailLoader.load(self)
-            except ValueError as e:
-                if "text/html content not found in email" in str(e):
-                    # Try plain text
-                    self.unstructured_kwargs["content_source"] = "text/plain"
-                    doc = UnstructuredEmailLoader.load(self)
-                else:
-                    raise
-        except Exception as e:
-            # Add file_path to exception message
-            raise type(e)(f"{self.file_path}: {e}") from e
-
-        return doc
-
 
 # Map file extensions to document loaders and their arguments
 LOADER_MAPPING = {
@@ -58,7 +32,6 @@ LOADER_MAPPING = {
     ".doc": (UnstructuredWordDocumentLoader, {}),
     ".docx": (UnstructuredWordDocumentLoader, {}),
     ".enex": (EverNoteLoader, {}),
-    ".eml": (MyElmLoader, {}),
     ".epub": (UnstructuredEPubLoader, {}),
     ".html": (UnstructuredHTMLLoader, {}),
     ".md": (UnstructuredMarkdownLoader, {}),
@@ -69,6 +42,8 @@ LOADER_MAPPING = {
     ".txt": (TextLoader, {"encoding": "utf8"}),
     # Add more mappings for other file extensions and loaders as needed
 }
+
+# Document processing
 
 
 def load_single_document(file_path: str) -> List[Document]:
@@ -85,6 +60,7 @@ def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Docum
     """
     Loads all documents from the source documents directory, ignoring specified files
     """
+    logger.info(f"Loading documents from {source_dir}")
     all_files = []
     for ext in LOADER_MAPPING:
         all_files.extend(
@@ -108,20 +84,17 @@ def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Docum
 
 
 def process_documents(
-    source_directory: str,
+    documents: List[Document],
     chunk_size: int,
     chunk_overlap: int,
-    ignored_files: List[str] = [],
 ) -> List[Document]:
     """
     Load documents and split in chunks
     """
-    logger.info(f"Loading documents from {source_directory}")
-    documents = load_documents(source_directory, ignored_files)
     if not documents:
         logger.info("No new documents to load")
         return
-    logger.info(f"Loaded {len(documents)} new documents from {source_directory}")
+    logger.info(f"Loaded {len(documents)} new documents")
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=chunk_size, chunk_overlap=chunk_overlap
     )
@@ -140,12 +113,57 @@ def ingest_documents(config: AppConfig):
         client_settings=config.get_chroma_settings(),
     )
     collection = db.get()
-    texts = process_documents(
-        source_directory=config.source_directory,
-        chunk_size=config.embeddings_model.chunk_size,
-        chunk_overlap=config.embeddings_model.chunk_overlap,
+
+    documents = load_documents(
+        source_dir=config.source_directory,
         ignored_files=[metadata["source"] for metadata in collection["metadatas"]],
     )
+
+    texts = process_documents(
+        documents=documents,
+        chunk_size=config.embeddings_model.chunk_size,
+        chunk_overlap=config.embeddings_model.chunk_overlap,
+    )
+    if texts:
+        logger.info("Creating embeddings. May take some minutes...")
+        db.add_documents(texts)
+
+    db.persist()
+    db = None
+
+    logger.info("Ingestion complete")
+
+
+# URL processing
+def filter_urls(new_urls: List[str], existing_urls: List[str]) -> List[str]:
+    return list(set(new_urls) - set(existing_urls))
+
+
+def load_urls_to_documents(urls: List[str]) -> List[Document]:
+    loader = UnstructuredURLLoader(urls=urls, headers={"User-Agent": "Mozilla/5.0"})
+    return loader.load()
+
+
+def ingest_urls(config: AppConfig, urls: List[str]) -> None:
+    logger.info(f"Using vectorstore at {config.persist_directory}")
+    db = Chroma(
+        persist_directory=config.persist_directory,
+        embedding_function=config.embeddings_model.get_embeddings(),
+        client_settings=config.get_chroma_settings(),
+    )
+    collection = db.get()
+
+    filtered_urls = filter_urls(
+        new_urls=urls,
+        existing_urls=[metadata["source"] for metadata in collection["metadatas"]],
+    )
+    documents = load_urls_to_documents(urls=filtered_urls)
+    texts = process_documents(
+        documents=documents,
+        chunk_size=config.embeddings_model.chunk_size,
+        chunk_overlap=config.embeddings_model.chunk_overlap,
+    )
+
     if texts:
         logger.info("Creating embeddings. May take some minutes...")
         db.add_documents(texts)

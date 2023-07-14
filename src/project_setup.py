@@ -74,7 +74,7 @@ def create_and_set_project(
 
     # Export project to zip if relevant
     if ".zip" in git_source:
-        print(f"Exporting project as zip archive to to {git_source}...")
+        print(f"Exporting project as zip archive to {git_source}...")
         project.export(git_source)
 
     # Set the project git source:
@@ -107,7 +107,7 @@ def create_and_set_project(
     )
 
     # Set MLRun workflows
-    project.set_workflow(name="main", workflow_path="src/ingest_and_serve.py")
+    project.set_workflow(name="main", workflow_path="src/ingest_and_deploy_workflow.py")
 
     # Save and return the project:
     project.save()

@@ -1,12 +1,6 @@
-import os
-
 from langchain.agents import AgentType, Tool, initialize_agent
 
-from .chains import (
-    build_conversational_retrieval_chain,
-    build_math_chain,
-    build_sql_database_chain,
-)
+from .chains import build_conversational_retrieval_chain, build_sql_database_chain
 from .config import AppConfig, setup_logging
 
 logger = setup_logging()
@@ -32,7 +26,8 @@ def build_agent(config: AppConfig):
             name="MLOps",
             func=conversational_retrieval_chain.__call__,
             description="""
-            Useful for when you need to answer questions about mlops, mlrun, iguazio, machine learning, data science, or other related topics.
+            Useful for when you need to answer questions about mlops, mlrun,
+            iguazio, machine learning, data science, or other related topics.
             """,
             return_direct=True,
         ),
@@ -40,7 +35,8 @@ def build_agent(config: AppConfig):
             name="Palmer penguins",
             func=penguin_sql_database_chain.run,
             description="""
-            Useful for when you need to answer questions about Adelie, Gentoo, or Chinstrap penguins using a SQL database.
+            Useful for when you need to answer questions about Adelie,
+            Gentoo, or Chinstrap penguins using a SQL database.
             """,
             return_direct=True,
         ),

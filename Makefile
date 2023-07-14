@@ -21,6 +21,7 @@ all:
 .PHONY: install-requirements
 install-requirements: ## Install all requirements needed for development
 	$(PYTHON_INTERPRETER) -m poetry install
+	poetry run python -m ipykernel install --user --name $(CONDA_ENV)
 
 .PHONY: package-wheel
 package-wheel: clean ## Build python package wheel
@@ -60,6 +61,7 @@ conda-env: ## Create a conda environment
 	conda create -n $(CONDA_ENV) -y python=$(CONDA_PY_VER) ipykernel graphviz pip protobuf=3.20.3 poetry==1.5.0
 	@echo "Installing dependencies"
 	$(CONDA_ACTIVATE) $(CONDA_ENV); poetry install
+	$(CONDA_ACTIVATE) $(CONDA_ENV); poetry run python -m ipykernel install --user --name $(CONDA_ENV)
 
 .PHONY: test
 test: ## Run unit tests via pytest
