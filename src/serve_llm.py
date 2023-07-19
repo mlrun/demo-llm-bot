@@ -20,5 +20,7 @@ class QueryLLM:
             response = str(e)
             if not response.startswith("Could not parse LLM output: `"):
                 raise e
-            event.body["output"] = response.removeprefix("Could not parse LLM output: `").removesuffix("`")
+            event.body["output"] = response.removeprefix(
+                "Could not parse LLM output: `"
+            ).removesuffix("`")
         return event

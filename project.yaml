@@ -37,7 +37,7 @@ spec:
     name: main
   artifacts: []
   conda: ''
-  source: git://github.com/mlrun/demo-llm-bot#main
+  source: v3io:///bigdata/llmbot.zip
   origin_url: git://github.com/mlrun/demo-llm-bot.git#refs/heads/db-agent
   load_source_on_run: true
   desired_state: online

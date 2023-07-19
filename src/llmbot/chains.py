@@ -7,24 +7,18 @@ from langchain.chains.conversational_retrieval.prompts import CONDENSE_QUESTION_
 from langchain.chains.llm import LLMChain
 from langchain.chains.qa_with_sources import load_qa_with_sources_chain
 from langchain.memory import ConversationBufferMemory, ReadOnlySharedMemory
-from langchain.vectorstores import Chroma
 
 from .config import AppConfig, setup_logging
 
 logger = setup_logging()
 
 
-def build_conversational_retrieval_chain(config: AppConfig):
-    # Embeddings function
-    embeddings = config.embeddings_model.get_embeddings()
-
+def build_conversational_retrieval_chain(
+    config: AppConfig, top_k: int = 3, combine_chain_type: str = "stuff"
+):
     # Vector store retriever
-    db = Chroma(
-        persist_directory=config.persist_directory,
-        embedding_function=embeddings,
-        client_settings=config.get_chroma_settings(),
-    )
-    retriever = db.as_retriever(search_kwargs={"k": config.retrieval_chain.k})
+    store = config.get_or_create_vectorstore()
+    retriever = store.as_retriever(search_kwargs={"k": top_k})
 
     # LLM
     llm = config.llm_model.get_llm()
@@ -38,7 +32,7 @@ def build_conversational_retrieval_chain(config: AppConfig):
         retriever=retriever,
         question_generator=LLMChain(llm=llm, prompt=CONDENSE_QUESTION_PROMPT),
         combine_docs_chain=load_qa_with_sources_chain(
-            llm=llm, chain_type=config.retrieval_chain.chain_type
+            llm=llm, chain_type=combine_chain_type
         ),
         memory=memory,
         verbose=True,

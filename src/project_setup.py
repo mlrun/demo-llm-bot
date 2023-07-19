@@ -10,6 +10,7 @@ IMAGE_REQUIREMENTS = [
     "openai==0.27.8",
     "gradio==3.35.2",
     "unstructured==0.7.12",
+    "pymilvus==2.2.13",
 ]
 
 
