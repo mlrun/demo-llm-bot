@@ -33,7 +33,7 @@ schedules
 !data/sqlite/*
 !data/urls/*
 !data/csv/*
-scratch.ipynb
+scratch*.ipynb
 
 ##########################
 # Common files
