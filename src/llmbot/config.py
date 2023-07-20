@@ -134,7 +134,7 @@ class MilvusConfig(VectorStoreConfig):
         self,
         embedding_function: Embeddings,
         kind: str = "Milvus",
-        host: str = "localhost",
+        host: str = "milvus",
         port: int = 19530,
     ):
         from langchain.vectorstores import Milvus
@@ -163,7 +163,7 @@ class MilvusConfig(VectorStoreConfig):
 class AppConfig(BaseSettings):
     embeddings_model: EmbeddingsModelConfig = HFEmbeddingsModelConfig()
     llm_model: LLMModelConfig = OpenAIModelConfig()
-    vector_store_class: VectorStoreConfig = InMemChromaConfig
+    vector_store_class: VectorStoreConfig = MilvusConfig
     store: PyObject = None
 
     # Nuclio functions store their code in a specific directory
