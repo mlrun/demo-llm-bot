@@ -6,7 +6,7 @@ from src.llmbot.ingestion import ingest_documents
 
 def handler(context: mlrun.MLClientCtx, persist_directory: str, source_directory: str):
     config = AppConfig()
-    config.get_or_create_vectorstore(persist_directory=persist_directory)
+    # config.get_or_create_vectorstore(persist_directory=persist_directory)
 
     context.logger.info(
         f"Starting ingestion from source directory {source_directory}..."

@@ -6,7 +6,7 @@ from src.llmbot import AppConfig, build_agent, parse_agent_output
 class QueryLLM:
     def __init__(self, persist_directory: str):
         config = AppConfig()
-        config.get_or_create_vectorstore(persist_directory=persist_directory)
+        # config.get_or_create_vectorstore(persist_directory=persist_directory)
         self.agent = build_agent(config=config)
 
     def do(self, event):
