@@ -167,7 +167,9 @@ class AppConfig(BaseSettings):
     store: PyObject = None
 
     # Nuclio functions store their code in a specific directory
-    repo_dir: str = "/opt/nuclio" if os.getenv("NUCLIO_FUNCTION_INSTANCE") else os.getcwd()
+    repo_dir: str = (
+        "/opt/nuclio" if os.getenv("NUCLIO_FUNCTION_INSTANCE") else os.getcwd()
+    )
 
     MLRUN_DBPATH: str
     OPENAI_API_KEY: str

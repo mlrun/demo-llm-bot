@@ -17,7 +17,7 @@ def build_conversational_retrieval_chain(
     config: AppConfig, top_k: int = 3, combine_chain_type: str = "stuff"
 ):
     # Vector store retriever
-    store = config.get_or_create_vectorstore()
+    store = config.get_or_create_vectorstore().store
     retriever = store.as_retriever(search_kwargs={"k": top_k})
 
     # LLM
