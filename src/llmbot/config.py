@@ -163,13 +163,11 @@ class MilvusConfig(VectorStoreConfig):
 class AppConfig(BaseSettings):
     embeddings_model: EmbeddingsModelConfig = HFEmbeddingsModelConfig()
     llm_model: LLMModelConfig = OpenAIModelConfig()
-    vector_store_class: VectorStoreConfig = MilvusConfig
+    vector_store_class: VectorStoreConfig = InMemChromaConfig
     store: PyObject = None
 
     # Nuclio functions store their code in a specific directory
-    repo_dir: str = (
-        "/opt/nuclio" if os.getenv("NUCLIO_FUNCTION_INSTANCE") else os.getcwd()
-    )
+    repo_dir: str = "/opt/nuclio" if os.getenv("NUCLIO_FUNCTION_INSTANCE") else os.getcwd()
 
     MLRUN_DBPATH: str
     OPENAI_API_KEY: str
