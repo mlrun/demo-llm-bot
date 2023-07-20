@@ -1,7 +1,7 @@
 ##########################
 # Vector store
 storage
-db
+db*
 
 ##########################
 # Local LLM models
