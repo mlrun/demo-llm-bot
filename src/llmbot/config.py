@@ -40,7 +40,9 @@ class EmbeddingsModelConfig(BaseModel):
     encode_kwargs: dict = Field(default_factory=dict)
 
     def get_embeddings(self) -> Embeddings:
-        return self.embeddings_class(model_name=self.name, **self.encode_kwargs)
+        return self.embeddings_class(
+            model_name=self.name, encode_kwargs=self.encode_kwargs
+        )
 
 
 class HFEmbeddingsModelConfig(EmbeddingsModelConfig):
