@@ -9,7 +9,7 @@ from langchain.chat_models.base import BaseChatModel
 from langchain.docstore.document import Document
 from langchain.embeddings.base import Embeddings
 from langchain.vectorstores.base import VectorStore
-from pydantic import BaseModel, BaseSettings, PyObject
+from pydantic import BaseModel, BaseSettings, Field, PyObject
 
 # LLM model config
 
@@ -37,9 +37,10 @@ class EmbeddingsModelConfig(BaseModel):
     chunk_size: int
     chunk_overlap: int
     embeddings_class: PyObject
+    encode_kwargs: dict = Field(default_factory=dict)
 
     def get_embeddings(self) -> Embeddings:
-        return self.embeddings_class(model_name=self.name)
+        return self.embeddings_class(model_name=self.name, **self.encode_kwargs)
 
 
 class HFEmbeddingsModelConfig(EmbeddingsModelConfig):
@@ -47,6 +48,7 @@ class HFEmbeddingsModelConfig(EmbeddingsModelConfig):
     chunk_size: int = 500
     chunk_overlap: int = 50
     embeddings_class: PyObject = "langchain.embeddings.HuggingFaceEmbeddings"
+    encode_kwargs: dict = {"batch_size": 16}
 
 
 # Vector store config
