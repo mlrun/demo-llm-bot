@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 import logging
-import os
 from abc import ABC, abstractmethod
 from typing import Any, List, Set
 
 from langchain.chat_models.base import BaseChatModel
 from langchain.docstore.document import Document
 from langchain.embeddings.base import Embeddings
-from langchain.vectorstores.base import VectorStore
 from pydantic import BaseModel, BaseSettings, Field, PyObject
 
 # LLM model config
@@ -172,9 +170,6 @@ class AppConfig(BaseSettings):
 
     # Nuclio functions store their code in a specific directory
     repo_dir: str = "/opt/nuclio"
-    # repo_dir: str = (
-    #     "/opt/nuclio" if os.getenv("NUCLIO_FUNCTION_INSTANCE") else os.getcwd()
-    # )
 
     MLRUN_DBPATH: str
     OPENAI_API_KEY: str
