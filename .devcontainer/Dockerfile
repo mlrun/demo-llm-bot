@@ -7,3 +7,6 @@ FROM mcr.microsoft.com/vscode/devcontainers/miniconda:0-${VARIANT}
 # Poetry
 ARG POETRY_VERSION="none"
 RUN if [ "${POETRY_VERSION}" != "none" ]; then su vscode -c "umask 0002 && pip3 install poetry==${POETRY_VERSION}"; fi
+
+# Pipeline visualization
+RUN apt-get update && apt-get install graphviz -y

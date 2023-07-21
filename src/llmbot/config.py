@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import logging
 import os
+from abc import ABC, abstractmethod
+from typing import Any, List, Set
 
-from chromadb.config import Settings
 from langchain.chat_models.base import BaseChatModel
+from langchain.docstore.document import Document
 from langchain.embeddings.base import Embeddings
-from pydantic import BaseModel, BaseSettings, PyObject
+from langchain.vectorstores.base import VectorStore
+from pydantic import BaseModel, BaseSettings, Field, PyObject
 
 # LLM model config
 
@@ -32,9 +37,12 @@ class EmbeddingsModelConfig(BaseModel):
     chunk_size: int
     chunk_overlap: int
     embeddings_class: PyObject
+    encode_kwargs: dict = Field(default_factory=dict)
 
     def get_embeddings(self) -> Embeddings:
-        return self.embeddings_class(model_name=self.name)
+        return self.embeddings_class(
+            model_name=self.name, encode_kwargs=self.encode_kwargs
+        )
 
 
 class HFEmbeddingsModelConfig(EmbeddingsModelConfig):
@@ -42,36 +50,131 @@ class HFEmbeddingsModelConfig(EmbeddingsModelConfig):
     chunk_size: int = 500
     chunk_overlap: int = 50
     embeddings_class: PyObject = "langchain.embeddings.HuggingFaceEmbeddings"
+    encode_kwargs: dict = {"batch_size": 16}
 
 
-# Retrieval chain config
+# Vector store config
 
 
-class RetrievalChainConfig(BaseModel):
-    chain_type: str
-    k: int
+class VectorStoreConfig(ABC):
+    @abstractmethod
+    def __init__(self, embedding_function: Embeddings, kind: str, **kwargs):
+        raise NotImplementedError()
+
+    @abstractmethod
+    def get_existing_documents(self) -> Set:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def add_documents(self, documents: List[Document], **kwargs: Any) -> List[str]:
+        raise NotImplementedError()
 
 
-class RetrievalQAWithSourcesChainConfig(RetrievalChainConfig):
-    chain_type: str = "stuff"
-    k: int = 3
+class InMemChromaConfig(VectorStoreConfig):
+    def __init__(
+        self,
+        embedding_function: Embeddings,
+        kind: str = "Chroma (In Memory)",
+        persist_directory: str = "db",
+    ):
+        from chromadb.config import Settings
+        from langchain.vectorstores import Chroma
+
+        self.kind = kind
+        self.store = Chroma(
+            embedding_function=embedding_function,
+            persist_directory=persist_directory,
+            client_settings=Settings(
+                persist_directory=persist_directory,
+                chroma_db_impl="duckdb+parquet",
+                anonymized_telemetry=False,
+            ),
+        )
+
+    def get_existing_documents(self) -> Set:
+        collection = self.store.get()
+        return {metadata["source"] for metadata in collection["metadatas"]}
+
+    def add_documents(self, documents: List[Document], **kwargs: Any) -> List[str]:
+        document_ids = self.store.add_documents(documents=documents, **kwargs)
+        self.store.persist()
+        return document_ids
+
+
+class RestChromaConfig(VectorStoreConfig):
+    def __init__(
+        self,
+        embedding_function: Embeddings,
+        kind: str = "Chroma (REST)",
+        host: str = "localhost",
+        port: int = 8000,
+    ):
+        from chromadb.config import Settings
+        from langchain.vectorstores import Chroma
+
+        self.kind = kind
+        self.store = Chroma(
+            embedding_function=embedding_function,
+            client_settings=Settings(
+                chroma_api_impl="rest",
+                chroma_server_host=host,
+                chroma_server_http_port=str(port),
+                anonymized_telemetry=False,
+            ),
+        )
+
+    def get_existing_documents(self) -> Set:
+        collection = self.store.get()
+        return {metadata["source"] for metadata in collection["metadatas"]}
+
+    def add_documents(self, documents: List[Document], **kwargs: Any) -> List[str]:
+        document_ids = self.store.add_documents(documents=documents, **kwargs)
+        self.store.persist()
+        return document_ids
+
+
+class MilvusConfig(VectorStoreConfig):
+    def __init__(
+        self,
+        embedding_function: Embeddings,
+        kind: str = "Milvus",
+        host: str = "milvus",
+        port: int = 19530,
+    ):
+        from langchain.vectorstores import Milvus
+
+        self.kind = kind
+        self.store = Milvus(
+            embedding_function=embedding_function,
+            connection_args={"host": host, "port": str(port)},
+        )
+
+    def get_existing_documents(self) -> Set:
+        if self.store.col:
+            resp = self.store.col.query(expr="pk >= 0", output_fields=["source"])
+            return {s["source"] for s in resp}
+        else:
+            return set()
+
+    def add_documents(self, documents: List[Document], **kwargs: Any) -> List[str]:
+        document_ids = self.store.add_documents(documents=documents, **kwargs)
+        return document_ids
 
 
 # Main config
 
 
 class AppConfig(BaseSettings):
-    persist_directory: str = "db"
-    source_directory: str = "data/sample"
-    chroma_db_impl: str = "duckdb+parquet"
     embeddings_model: EmbeddingsModelConfig = HFEmbeddingsModelConfig()
     llm_model: LLMModelConfig = OpenAIModelConfig()
-    retrieval_chain: RetrievalChainConfig = RetrievalQAWithSourcesChainConfig()
+    vector_store_class: VectorStoreConfig = MilvusConfig
+    store: PyObject = None
 
     # Nuclio functions store their code in a specific directory
-    repo_dir: str = (
-        "/opt/nuclio" if os.getenv("NUCLIO_FUNCTION_INSTANCE") else os.getcwd()
-    )
+    repo_dir: str = "/opt/nuclio"
+    # repo_dir: str = (
+    #     "/opt/nuclio" if os.getenv("NUCLIO_FUNCTION_INSTANCE") else os.getcwd()
+    # )
 
     MLRUN_DBPATH: str
     OPENAI_API_KEY: str
@@ -81,12 +184,13 @@ class AppConfig(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
 
-    def get_chroma_settings(self) -> Settings:
-        return Settings(
-            chroma_db_impl=self.chroma_db_impl,
-            persist_directory=self.persist_directory,
-            anonymized_telemetry=False,
+    def get_or_create_vectorstore(self, **kwargs) -> VectorStoreConfig:
+        if self.store:
+            return self.store
+        self.store = self.vector_store_class(
+            embedding_function=self.embeddings_model.get_embeddings(), **kwargs
         )
+        return self.store
 
 
 # Logging config

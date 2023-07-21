@@ -18,7 +18,6 @@ from langchain.document_loaders import (
     UnstructuredWordDocumentLoader,
 )
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Chroma
 from tqdm import tqdm
 
 from .config import AppConfig, setup_logging
@@ -105,18 +104,13 @@ def process_documents(
     return texts
 
 
-def ingest_documents(config: AppConfig):
-    logger.info(f"Using vectorstore at {config.persist_directory}")
-    db = Chroma(
-        persist_directory=config.persist_directory,
-        embedding_function=config.embeddings_model.get_embeddings(),
-        client_settings=config.get_chroma_settings(),
-    )
-    collection = db.get()
+def ingest_documents(config: AppConfig, source_directory: str):
+    store = config.get_or_create_vectorstore()
+    logger.info(f"Using vectorstore {store.kind}")
 
     documents = load_documents(
-        source_dir=config.source_directory,
-        ignored_files=[metadata["source"] for metadata in collection["metadatas"]],
+        source_dir=source_directory,
+        ignored_files=store.get_existing_documents(),
     )
 
     texts = process_documents(
@@ -126,10 +120,7 @@ def ingest_documents(config: AppConfig):
     )
     if texts:
         logger.info("Creating embeddings. May take some minutes...")
-        db.add_documents(texts)
-
-    db.persist()
-    db = None
+        store.add_documents(texts)
 
     logger.info("Ingestion complete")
 
@@ -145,17 +136,12 @@ def load_urls_to_documents(urls: List[str]) -> List[Document]:
 
 
 def ingest_urls(config: AppConfig, urls: List[str]) -> None:
-    logger.info(f"Using vectorstore at {config.persist_directory}")
-    db = Chroma(
-        persist_directory=config.persist_directory,
-        embedding_function=config.embeddings_model.get_embeddings(),
-        client_settings=config.get_chroma_settings(),
-    )
-    collection = db.get()
+    store = config.get_or_create_vectorstore()
+    logger.info(f"Using vectorstore {store.kind}")
 
     filtered_urls = filter_urls(
         new_urls=urls,
-        existing_urls=[metadata["source"] for metadata in collection["metadatas"]],
+        existing_urls=store.get_existing_documents(),
     )
     documents = load_urls_to_documents(urls=filtered_urls)
     texts = process_documents(
@@ -166,9 +152,6 @@ def ingest_urls(config: AppConfig, urls: List[str]) -> None:
 
     if texts:
         logger.info("Creating embeddings. May take some minutes...")
-        db.add_documents(texts)
-
-    db.persist()
-    db = None
+        store.add_documents(texts)
 
     logger.info("Ingestion complete")

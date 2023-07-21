@@ -5,7 +5,9 @@ from src.llmbot import AppConfig, build_agent, parse_agent_output
 
 class QueryLLM:
     def __init__(self, persist_directory: str):
-        self.agent = build_agent(config=AppConfig(persist_directory=persist_directory))
+        config = AppConfig()
+        # config.get_or_create_vectorstore(persist_directory=persist_directory)
+        self.agent = build_agent(config=config)
 
     def do(self, event):
         try:
@@ -20,5 +22,7 @@ class QueryLLM:
             response = str(e)
             if not response.startswith("Could not parse LLM output: `"):
                 raise e
-            event.body["output"] = response.removeprefix("Could not parse LLM output: `").removesuffix("`")
+            event.body["output"] = response.removeprefix(
+                "Could not parse LLM output: `"
+            ).removesuffix("`")
         return event

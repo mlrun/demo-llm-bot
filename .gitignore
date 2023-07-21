@@ -1,7 +1,7 @@
 ##########################
 # Vector store
 storage
-db
+db*
 
 ##########################
 # Local LLM models
@@ -33,7 +33,7 @@ schedules
 !data/sqlite/*
 !data/urls/*
 !data/csv/*
-scratch.ipynb
+scratch*.ipynb
 
 ##########################
 # Common files

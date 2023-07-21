@@ -1,3 +1,5 @@
+import os
+
 import mlrun
 from kfp import dsl
 from mlrun.runtimes.pod import KubeResource
@@ -19,8 +21,8 @@ def pipeline(persist_directory: str, source_directory: str, urls_file: str):
 
     # Ingest and index documents in vector store
     ingest_docs_fn = project.get_function("ingest-documents")
-    ingest_docs_fn.apply(mlrun.mount_v3io())
-    apply_openai_env(project=project, fn=ingest_docs_fn)
+    # ingest_docs_fn.apply(mlrun.mount_v3io())
+    # apply_openai_env(project=project, fn=ingest_docs_fn)
     ingest_docs_run = project.run_function(
         ingest_docs_fn,
         params={
@@ -31,8 +33,8 @@ def pipeline(persist_directory: str, source_directory: str, urls_file: str):
 
     # Ingest and index URLs in vector store
     ingest_urls_fn = project.get_function("ingest-urls")
-    ingest_urls_fn.apply(mlrun.mount_v3io())
-    apply_openai_env(project=project, fn=ingest_urls_fn)
+    # ingest_urls_fn.apply(mlrun.mount_v3io())
+    # apply_openai_env(project=project, fn=ingest_urls_fn)
     ingest_urls_run = project.run_function(
         ingest_urls_fn,
         params={"persist_directory": persist_directory, "urls_file": urls_file},
@@ -40,8 +42,8 @@ def pipeline(persist_directory: str, source_directory: str, urls_file: str):
 
     # Serve LLM
     serving_fn = project.get_function("serve-llm")
-    serving_fn.apply(mlrun.mount_v3io())
-    apply_openai_env(project=project, fn=serving_fn)
+    # serving_fn.apply(mlrun.mount_v3io())
+    # apply_openai_env(project=project, fn=serving_fn)
     graph = serving_fn.set_topology("flow", engine="async")
     graph.add_step(
         name="llm",
@@ -49,5 +51,12 @@ def pipeline(persist_directory: str, source_directory: str, urls_file: str):
         persist_directory=str(persist_directory),
         full_event=True,
     ).respond()
+
+    serving_fn.set_envs(
+        {
+            "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY"),
+            "OPENAI_API_BASE": os.getenv("OPENAI_API_BASE"),
+        }
+    )
 
     project.deploy_function(serving_fn).after(ingest_urls_run)
