@@ -59,7 +59,10 @@ project = create_and_set_project(
 
 project.run(
     name="main",
-    arguments={"persist_directory" : "/v3io/bigdata/db"},
+    arguments={
+        "source_directory" : "data/mlrun_docs_md",
+        "urls_file" : "data/urls/mlops_blogs.txt"
+    },
     watch=True,
     dirty=True
 )
@@ -73,8 +76,8 @@ This results in the following MLRun workflow:
 Once the data has been indexed and the LLM application is running, the endpoint can be directly queried via POST request like so:
 
 ```python
-serving_fn = project.get_function("serve-llm")
-serving_fn.invoke(path="/", body={"question" : "How tall are llamas?", "chat_history" : []})
+serving_fn = project.get_function("serve-llm", sync=True)
+serving_fn.invoke(path="/", body={"question" : "how I deploy ML models?", "chat_history" : []})
 ```
 
 Additionally, it can be used in the provided interactive chat application. This application will answer questions in a chatbot format using the provided documents as context. The response from the LLM will also specify which document was used to craft the response. It can be deployed locally with the following:
@@ -89,6 +92,6 @@ chat.launch(server_name="0.0.0.0", ssl_verify=False)
 The model endpoint at the top can be filled in using this info:
 
 ```python
-endpoint_url = f"https://{serving_fn.status.external_invocation_urls[0]}"
+endpoint_url = serving_fn.get_url()
 endpoint_url
 ```
