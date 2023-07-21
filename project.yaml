@@ -1,7 +1,7 @@
 kind: project
 metadata:
   name: llmbot
-  created: '2023-07-03T19:55:54.018000'
+  created: '2023-07-20T23:27:16.595357'
 spec:
   functions:
   - url: src/project_setup.py
@@ -27,6 +27,7 @@ spec:
     - openai==0.27.8
     - gradio==3.35.2
     - unstructured==0.7.12
+    - pymilvus==2.3.0b1
   - url: src/ingest_urls.py
     name: ingest-urls
     kind: job
@@ -37,11 +38,10 @@ spec:
     name: main
   artifacts: []
   conda: ''
-  source: v3io:///bigdata/llmbot.zip
-  origin_url: git://github.com/mlrun/demo-llm-bot.git#refs/heads/db-agent
+  source: git://github.com/mlrun/demo-llm-bot#main
+  origin_url: git://github.com/mlrun/demo-llm-bot.git#refs/heads/development
   load_source_on_run: true
   desired_state: online
-  owner: nick
   default_image: .mlrun/func-llmbot-image-builder:latest
 status:
   state: online
