@@ -7,26 +7,33 @@ The project utilizes MLRun for orchestration/deployment, HuggingFace embeddings 
 
 ## Getting Started
 
-To get started with the Interactive Bot Demo, see the [tutorial.ipynb](tutorial.ipynb) or follow the instructions below:
+To get started with the Interactive Bot Demo, follow the instructions below and then see the [tutorial.ipynb](tutorial.ipynb):
 
-### Prerequisites
-
-Copy the `mlrun.env` file to another name (e.g. `creds.env`) and populate with the required environment variables.
-
-1. `MLRUN_DBPATH`: API Endpoint for the MLRun database service. See [MLRun documentation](https://docs.mlrun.org/en/latest/install/remote.html#install-remote) for more info.
-
-1. `OPENAI_API_KEY`: Obtain an API key from OpenAI to access the GPT-3.5 model. You can find instructions on how to obtain an API key in the [OpenAI docs](https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key).
-
-1. `OPENAI_API_BASE`: If your application uses a different API base than the default, you can specify it here. Otherwise, leave as default.
 
 ### Installation
 
-This project uses `conda` for environment managmeent and `poetry` for dependency management. To get started:
 
-1. Install [Conda](https://docs.conda.io/en/latest/miniconda.html)
-1. Set up the environment via `make conda-env`
-1. Activate conda environment with `conda activate llmbot`
+1. Setup MLRun on docker compose using the [mlrun-setup](https://github.com/mlrun/mlrun-setup) utility. Be sure to include the `--jupyter` and `--milvus` flags as they will be used in this example. For example:
+    ```bash
+    python mlsetup.py docker --jupyter --milvus --tag 1.3.3
+    ```
 
+1. Open Jupyter at http://localhost:8888
+
+1. Clone [this repo](https://github.com/mlrun/demo-llm-bot) inside the Jupyter container
+
+1. This project uses `conda` for environment managmeent and `poetry` for dependency management. To get started, setup the Python environment using the provided `Makefile`:
+    ```bash
+    cd demo-llm-bot
+    make conda-env
+    ```
+
+1. Copy the `mlrun.env` file to another name (e.g. `openai.env`) and populate with the required environment variables.
+    - `OPENAI_API_KEY`: Obtain an API key from OpenAI to access the GPT-3.5 model. You can find instructions on how to obtain an API key in the [OpenAI docs](https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key).
+
+    - `OPENAI_API_BASE`: If your application uses a different API base than the default, you can specify it here. Otherwise, leave as default.
+
+1. Open [tutorial.ipynb](tutorial.ipynb) in Jupyter with the newly created `llmbot` kernel. Run the notebook to deploy the example.
 
 ## Overview
 
