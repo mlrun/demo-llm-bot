@@ -18,6 +18,8 @@ To get started with the Interactive Bot Demo, follow the instructions below and 
     python mlsetup.py docker --jupyter --milvus --tag 1.3.3
     ```
 
+    *Note: You can add an optional parameter for the Jupyter image. If using an M1/M2 Mac, you should use an `arm64` comaptible image such as `jupyter/scipy-notebook:2023-06-01`. The corresponding final command will be `python mlsetup.py docker -j jupyter/scipy-notebook:2023-06-01 --milvus --tag 1.3.3`.*
+
 1. Open Jupyter at http://localhost:8888
 
 1. Clone [this repo](https://github.com/mlrun/demo-llm-bot) inside the Jupyter container
@@ -27,6 +29,8 @@ To get started with the Interactive Bot Demo, follow the instructions below and 
     cd demo-llm-bot
     make conda-env
     ```
+
+    *Note: If this command times out, repeat `conda-env` until it successfully installs.*
 
 1. Copy the `mlrun.env` file to another name (e.g. `openai.env`) and populate with the required environment variables.
     - `OPENAI_API_KEY`: Obtain an API key from OpenAI to access the GPT-3.5 model. You can find instructions on how to obtain an API key in the [OpenAI docs](https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key).
