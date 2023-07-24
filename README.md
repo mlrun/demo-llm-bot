@@ -4,19 +4,34 @@ This repository demonstrates the usage of Language Models (LLMs) and MLRun to bu
 
 The project utilizes MLRun for orchestration/deployment, HuggingFace embeddings for indexing data, ChromaDB for the vector database, OpenAI's GPT-3.5 model for generating responses, Langchain to retrieve relevant data from the vector store and augment the response from the LLM, and Gradio for building an interactive frontend.
 
+- [Getting Started](#getting-started)
+    - [Pre-Requisites](#pre-requisites)
+    - [Installation](#installation)
+- [Overview](#overview)
+    - [Index Data and Deploy LLM](#index-data-and-deploy-llm)
+    - [Interactive Chat Application](#interactive-chat-application)
+- [Adding New Data](#adding-new-data)
+    - [Documents](#documents)
+    - [URLs](#urls)
+    - [CSV File](#csv-file)
+    - [SQL Database](#sql-database)
 
 ## Getting Started
 
 To get started with the Interactive Bot Demo, follow the instructions below and then see the [tutorial.ipynb](tutorial.ipynb):
 
+### Pre-Requisites
+
+ - `OPENAI_API_KEY`: Obtain an API key from OpenAI to access the GPT-3.5 model. You can find instructions on how to obtain an API key in the [OpenAI docs](https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key).
 
 ### Installation
-
 
 1. Setup MLRun on docker compose using the [mlrun-setup](https://github.com/mlrun/mlrun-setup) utility. Be sure to include the `--jupyter` and `--milvus` flags as they will be used in this example. For example:
     ```bash
     python mlsetup.py docker --jupyter --milvus --tag 1.3.3
     ```
+
+    *Note: You can add an optional parameter for the Jupyter image. If using an M1/M2 Mac, you should use an `arm64` comaptible image such as `jupyter/scipy-notebook:2023-06-01`. The corresponding final command will be `python mlsetup.py docker -j jupyter/scipy-notebook:2023-06-01 --milvus --tag 1.3.3`.*
 
 1. Open Jupyter at http://localhost:8888
 
@@ -27,6 +42,8 @@ To get started with the Interactive Bot Demo, follow the instructions below and 
     cd demo-llm-bot
     make conda-env
     ```
+
+    *Note: If this command times out, repeat `conda-env` until it successfully installs.*
 
 1. Copy the `mlrun.env` file to another name (e.g. `openai.env`) and populate with the required environment variables.
     - `OPENAI_API_KEY`: Obtain an API key from OpenAI to access the GPT-3.5 model. You can find instructions on how to obtain an API key in the [OpenAI docs](https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key).
@@ -95,3 +112,33 @@ The model endpoint at the top can be filled in using this info:
 endpoint_url = serving_fn.get_url()
 endpoint_url
 ```
+
+## Adding New Data
+
+In order to run this demo with your own data, changes can be made in a few different places depending on the type of the data.
+
+### Documents
+
+To ingest your own documents into the vector store, download them locally and place them under the [data](./data) directory in a dedicated sub-directory. Then, update the `source_directory` parameter in the pipeline.
+
+Currently, the supported file types are `.csv`, `.doc`, `.docx`, `.enex`, `.epub`, `.html`, `.md`, `.odt`, `.pdf`, `.ppt`, `.pptx`, and `.txt`. If additional file types are needed, update `LOADER_MAPPING` within [ingestion.py](./src/llmbot/ingestion.py) with the corresponding file extension and document loader.
+
+### URLs
+
+To ingest your own content from URLs into the vector store, create a file modelled after [mlops_blogs.txt](./data/urls/mlops_blogs.txt) where each URL to be ingested is on its own line. Place this file under the [data](./data) directory in a dedicated sub-directory. Then, update the `urls_file` parameter in the pipeline.
+
+### CSV File
+
+CSV files can be used in two different ways. The first is just as a simple document as described [above](#documents). However, you can also interact with the CSV file using a [Langchain CSV Agent](https://python.langchain.com/docs/integrations/toolkits/csv).
+
+To use a CSV Agent, first place your `.csv` file within the [data](./data) directory in a dedicated sub-directory. Then, update the `build_agent` function within [agent.py](./src/llmbot/agent.py) to point to the new CSV file using the provided `build_csv_chain` helper function. 
+
+*Note: It is possible to have multiple CSV Agents. Simply register both as `tools` with a name, description, and newly created chain from `build_csv_chain`.*
+
+### SQL Database
+
+SQLAlchemy compatible databases can be interacted with via the [Langchain SQL Database Agent](https://python.langchain.com/docs/integrations/toolkits/sql_database).
+
+If using a local database such as SQLite, place the `.db` file within the [data](./data) directory in a dedicated sub-directory. Then, update the `build_agent` function within [agent.py](./src/llmbot/agent.py) to point to the local database file or remote SQLAlchemy URI using the provided `build_sql_database_chain` helper function.
+
+*Note: It is possible to have multiple SQL Database Agents. Simply register both as `tools` with a name, description, and newly created chain from `build_sql_database_chain`.*
