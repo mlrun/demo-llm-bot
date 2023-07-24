@@ -57,8 +57,10 @@ flake8: ## Run flake8 lint
 
 .PHONY: conda-env
 conda-env: ## Create a conda environment
-	@echo "Creating new conda environment $(CONDA_ENV)..."
-	conda create -c conda-forge -n $(CONDA_ENV) -y python=$(CONDA_PY_VER) ipykernel graphviz pip protobuf=3.20.3 poetry==1.5.0
+	@if ! conda env list | grep -q $(CONDA_ENV); then \
+		echo "Creating new conda environment $(CONDA_ENV)..."; \
+		conda create -c conda-forge -n $(CONDA_ENV) -y python=$(CONDA_PY_VER) ipykernel graphviz pip protobuf=3.20.3 poetry==1.5.0; \
+	fi
 	@echo "Installing dependencies"
 	$(CONDA_ACTIVATE) $(CONDA_ENV); poetry install
 	$(CONDA_ACTIVATE) $(CONDA_ENV); poetry run python -m ipykernel install --user --name $(CONDA_ENV)
