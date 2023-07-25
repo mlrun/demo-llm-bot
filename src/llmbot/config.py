@@ -48,7 +48,15 @@ class HFEmbeddingsModelConfig(EmbeddingsModelConfig):
     chunk_size: int = 500
     chunk_overlap: int = 50
     embeddings_class: PyObject = "langchain.embeddings.HuggingFaceEmbeddings"
-    encode_kwargs: dict = {"batch_size": 16}
+    encode_kwargs: dict = {"batch_size": 32}
+
+
+class HFMultiLingualEmbeddingsModelConfig(EmbeddingsModelConfig):
+    name: str = "paraphrase-multilingual-MiniLM-L12-v2"
+    chunk_size: int = 500
+    chunk_overlap: int = 50
+    embeddings_class: PyObject = "langchain.embeddings.HuggingFaceEmbeddings"
+    encode_kwargs: dict = {"batch_size": 32}
 
 
 # Vector store config
