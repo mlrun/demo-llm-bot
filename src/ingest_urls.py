@@ -8,6 +8,7 @@ from src.llmbot.ingestion import ingest_urls
 
 def handler(context: mlrun.MLClientCtx, urls_file: str):
     config = AppConfig()
+    config.get_or_create_vectorstore(host="localhost")
 
     # Split file of URLs separated by newlines into list for processing
     urls = Path(urls_file).read_text().splitlines()
