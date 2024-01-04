@@ -1,6 +1,12 @@
+import os
+
+import mlrun
 from langchain.schema import messages_from_dict
 
 from src.llmbot import AppConfig, build_agent, parse_agent_output
+
+os.environ["OPENAI_API_KEY"] = mlrun.get_secret_or_env("OPENAI_API_KEY")
+os.environ["OPENAI_API_BASE"] = mlrun.get_secret_or_env("OPENAI_API_BASE")
 
 
 class QueryLLM:

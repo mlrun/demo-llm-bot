@@ -60,7 +60,7 @@ def build_agent(config: AppConfig):
 
     return initialize_agent(
         tools=tools,
-        llm=config.llm_model.get_llm(),
+        llm=config.get_llm(),
         agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION,
         verbose=True,
     )
