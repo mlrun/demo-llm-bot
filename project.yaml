@@ -1,47 +1,32 @@
 kind: project
 metadata:
   name: llmbot
-  created: '2023-07-20T23:27:16.595357'
 spec:
+  params:
+    source: v3io:///bigdata/demo-llm-bot.zip
+    secrets_file: secrets.env
+    image: nschenone/llmbot:1.4.1
   functions:
-  - url: src/project_setup.py
-    name: image-builder
+  - url: src/ingest.py
+    name: ingest
     kind: job
-    image: mlrun/ml-models:1.3.3
-    handler: assert_build
-  - url: src/ingest_documents.py
-    name: ingest-documents
-    kind: job
-    handler: handler
+    image: nschenone/llmbot:1.4.1
     with_repo: true
   - url: src/serve_llm.py
     name: serve-llm
     kind: serving
-    image: mlrun/ml-models:1.3.3
-    with_repo: true
-    requirements:
-    - mlrun==1.3.3
-    - langchain==0.0.209
-    - chromadb==0.3.26
-    - sentence-transformers==2.2.2
-    - openai==0.27.8
-    - gradio==3.35.2
-    - unstructured==0.7.12
-    - pymilvus==2.3.0b1
-  - url: src/ingest_urls.py
-    name: ingest-urls
-    kind: job
-    handler: handler
+    image: nschenone/llmbot:1.4.1
     with_repo: true
   workflows:
   - path: src/ingest_and_deploy_workflow.py
     name: main
   artifacts: []
   conda: ''
-  source: git://github.com/mlrun/demo-llm-bot#main
-  origin_url: git://github.com/mlrun/demo-llm-bot.git#refs/heads/development
+  source: v3io:///bigdata/demo-llm-bot.zip
+  origin_url: git://github.com/mlrun/demo-llm-bot.git#refs/heads/main
   load_source_on_run: true
   desired_state: online
-  default_image: .mlrun/func-llmbot-image-builder:latest
-status:
-  state: online
+  build:
+    commands: []
+    requirements: []
+  custom_packagers: []

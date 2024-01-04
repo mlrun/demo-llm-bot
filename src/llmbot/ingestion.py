@@ -1,6 +1,5 @@
 import glob
 import os
-from multiprocessing import Pool
 from typing import List
 
 from langchain.docstore.document import Document
@@ -18,7 +17,7 @@ from langchain.document_loaders import (
     UnstructuredWordDocumentLoader,
 )
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from tqdm import tqdm
+from langchain.vectorstores import Milvus
 
 from .config import AppConfig, setup_logging
 
@@ -45,12 +44,12 @@ LOADER_MAPPING = {
 # Document processing
 
 
-def load_single_document(file_path: str) -> List[Document]:
+def load_single_document(file_path: str) -> Document:
     ext = "." + file_path.rsplit(".", 1)[-1]
     if ext in LOADER_MAPPING:
         loader_class, loader_args = LOADER_MAPPING[ext]
         loader = loader_class(file_path, **loader_args)
-        return loader.load()
+        return loader.load()[0]
 
     raise ValueError(f"Unsupported file extension '{ext}'")
 
@@ -68,18 +67,8 @@ def load_documents(source_dir: str, ignored_files: List[str] = []) -> List[Docum
     filtered_files = [
         file_path for file_path in all_files if file_path not in ignored_files
     ]
-    with Pool(processes=os.cpu_count()) as pool:
-        results = []
-        with tqdm(
-            total=len(filtered_files), desc="Loading new documents", ncols=80
-        ) as pbar:
-            for i, docs in enumerate(
-                pool.imap_unordered(load_single_document, filtered_files)
-            ):
-                results.extend(docs)
-                pbar.update()
 
-    return results
+    return [load_single_document(file_path) for file_path in filtered_files]
 
 
 def process_documents(
@@ -104,19 +93,27 @@ def process_documents(
     return texts
 
 
+def get_existing_milvus_documents(store: Milvus) -> set:
+    if store.col:
+        resp = store.col.query(expr="pk >= 0", output_fields=["source"])
+        return {s["source"] for s in resp}
+    else:
+        return set()
+
+
 def ingest_documents(config: AppConfig, source_directory: str):
-    store = config.get_or_create_vectorstore()
-    logger.info(f"Using vectorstore {store.kind}")
+    store = config.get_vector_store()
+    logger.info(f"Using vectorstore {store}")
 
     documents = load_documents(
         source_dir=source_directory,
-        ignored_files=store.get_existing_documents(),
+        ignored_files=get_existing_milvus_documents(store),
     )
 
     texts = process_documents(
         documents=documents,
-        chunk_size=config.embeddings_model.chunk_size,
-        chunk_overlap=config.embeddings_model.chunk_overlap,
+        chunk_size=config.embeddings_chunk_size,
+        chunk_overlap=config.embeddings_chunk_overlap,
     )
     if texts:
         logger.info("Creating embeddings. May take some minutes...")
@@ -136,18 +133,18 @@ def load_urls_to_documents(urls: List[str]) -> List[Document]:
 
 
 def ingest_urls(config: AppConfig, urls: List[str]) -> None:
-    store = config.get_or_create_vectorstore()
-    logger.info(f"Using vectorstore {store.kind}")
+    store = config.get_vector_store()
+    logger.info(f"Using vectorstore {store}")
 
     filtered_urls = filter_urls(
         new_urls=urls,
-        existing_urls=store.get_existing_documents(),
+        existing_urls=get_existing_milvus_documents(store),
     )
     documents = load_urls_to_documents(urls=filtered_urls)
     texts = process_documents(
         documents=documents,
-        chunk_size=config.embeddings_model.chunk_size,
-        chunk_overlap=config.embeddings_model.chunk_overlap,
+        chunk_size=config.embeddings_chunk_size,
+        chunk_overlap=config.embeddings_chunk_overlap,
     )
 
     if texts:

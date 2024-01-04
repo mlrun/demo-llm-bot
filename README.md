@@ -2,7 +2,7 @@
 
 This repository demonstrates the usage of Language Models (LLMs) and MLRun to build an interactive chatbot using your own data for Retrieval Augmented Question Answering. The data will be ingested and indexed into a Vector Database to be queried by an LLM in real-time.
 
-The project utilizes MLRun for orchestration/deployment, HuggingFace embeddings for indexing data, ChromaDB for the vector database, OpenAI's GPT-3.5 model for generating responses, Langchain to retrieve relevant data from the vector store and augment the response from the LLM, and Gradio for building an interactive frontend.
+The project utilizes MLRun for orchestration/deployment, HuggingFace embeddings for indexing data, Milvus for the vector database, OpenAI's GPT-3.5 model for generating responses, Langchain to retrieve relevant data from the vector store and augment the response from the LLM, and Gradio for building an interactive frontend.
 
 - [Getting Started](#getting-started)
     - [Pre-Requisites](#pre-requisites)
@@ -26,18 +26,13 @@ To get started with the Interactive Bot Demo, follow the instructions below and 
 
 ### Installation
 
-1. Setup MLRun on docker compose using the [mlrun-setup](https://github.com/mlrun/mlrun-setup) utility. Be sure to include the `--jupyter` and `--milvus` flags as they will be used in this example. For example:
-    ```bash
-    python mlsetup.py docker --jupyter --milvus --tag 1.3.3
-    ```
+1. Setup MLRun on Kubernetes using [this documentation](https://docs.mlrun.org/en/latest/install/kubernetes.html)
 
-    *Note: You can add an optional parameter for the Jupyter image. If using an M1/M2 Mac, you should use an `arm64` comaptible image such as `jupyter/scipy-notebook:2023-06-01`. The corresponding final command will be `python mlsetup.py docker -j jupyter/scipy-notebook:2023-06-01 --milvus --tag 1.3.3`.*
-
-1. Open Jupyter at http://localhost:8888
+1. Open Jupyter at http://localhost:30040
 
 1. Clone [this repo](https://github.com/mlrun/demo-llm-bot) inside the Jupyter container
 
-1. This project uses `conda` for environment managmeent and `poetry` for dependency management. To get started, setup the Python environment using the provided `Makefile`:
+1. This project uses `conda` for environment management. To get started, setup the Python environment using the provided `Makefile`:
     ```bash
     cd demo-llm-bot
     make conda-env
@@ -45,7 +40,7 @@ To get started with the Interactive Bot Demo, follow the instructions below and 
 
     *Note: If this command times out, repeat `conda-env` until it successfully installs.*
 
-1. Copy the `mlrun.env` file to another name (e.g. `openai.env`) and populate with the required environment variables.
+1. Copy the `mlrun.env` file to another name (e.g. `secrets.env`) and populate with the required environment variables.
     - `OPENAI_API_KEY`: Obtain an API key from OpenAI to access the GPT-3.5 model. You can find instructions on how to obtain an API key in the [OpenAI docs](https://help.openai.com/en/articles/4936850-where-do-i-find-my-secret-api-key).
 
     - `OPENAI_API_BASE`: If your application uses a different API base than the default, you can specify it here. Otherwise, leave as default.
@@ -60,18 +55,20 @@ There are two main portions of this project:
 
 The first step is to run a pipeline using MLRun responsible for:
 1. Ingesting and indexing data into the vector database
-1. Deploying a real-time model serving endpoint for the Langchain + ChromaDB application
+1. Deploying a real-time model serving endpoint for the Langchain + Milvus application
 
 This can be done with the following:
 
 ```python
-from src import create_and_set_project
+import mlrun
 
-ENV_FILE = "mlrun.env" # update to your .env file
-
-project = create_and_set_project(
-    env_file=ENV_FILE,
-    git_source="git://github.com/mlrun/demo-llm-bot#main"
+project = mlrun.get_or_create_project(
+    name="llmbot",
+    parameters={
+        "source" : "git://github.com/mlrun/demo-llm-bot#main",
+        "secrets_file" : "secrets.env",
+        "image" : "nschenone/llmbot:1.4.1"
+    }
 )
 
 project.run(
@@ -86,7 +83,7 @@ project.run(
 ```
 
 This results in the following MLRun workflow:
-![](images/workflow.png)
+![](docs/workflow.png)
 
 ### Interactive Chat Application
 
@@ -104,7 +101,7 @@ from src import chat
 
 chat.launch(server_name="0.0.0.0", ssl_verify=False)
 ```
-![](images/chat.png)
+![](docs/chat.png)
 
 The model endpoint at the top can be filled in using this info:
 

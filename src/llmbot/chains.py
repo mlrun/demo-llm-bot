@@ -17,11 +17,11 @@ def build_conversational_retrieval_chain(
     config: AppConfig, top_k: int = 3, combine_chain_type: str = "stuff"
 ):
     # Vector store retriever
-    store = config.get_or_create_vectorstore().store
+    store = config.get_vector_store()
     retriever = store.as_retriever(search_kwargs={"k": top_k})
 
     # LLM
-    llm = config.llm_model.get_llm()
+    llm = config.get_llm()
 
     # Memory - placeholder to be passed in during inferencing
     memory = ReadOnlySharedMemory(
@@ -40,12 +40,12 @@ def build_conversational_retrieval_chain(
 
 
 def build_math_chain(config: AppConfig):
-    llm = config.llm_model.get_llm()
+    llm = config.get_llm()
     return LLMMathChain.from_llm(llm=llm, verbose=True)
 
 
 def build_sql_database_chain(config: AppConfig, db_uri: str):
-    llm = config.llm_model.get_llm()
+    llm = config.get_llm()
     db = SQLDatabase.from_uri(db_uri)
     toolkit = SQLDatabaseToolkit(db=db, llm=llm)
     return create_sql_agent(
@@ -54,7 +54,7 @@ def build_sql_database_chain(config: AppConfig, db_uri: str):
 
 
 def build_csv_chain(config: AppConfig, csv_path: str):
-    llm = config.llm_model.get_llm()
+    llm = config.get_llm()
     return create_csv_agent(
         llm=llm,
         path=csv_path,
