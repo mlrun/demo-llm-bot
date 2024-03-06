@@ -5,4 +5,4 @@ transformers==4.31.0
 sentence-transformers==2.2.2
 unstructured==0.7.12
 pymilvus==2.3.0b1
-langchain==0.0.324
+langchain==0.1.11
